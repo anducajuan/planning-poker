@@ -7,7 +7,7 @@ export function AppRoutes() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/session" element={<Session />} />
+        <Route path="/session/:sessionId" element={<Session />} />
       </Routes>
     </BrowserRouter>
   );

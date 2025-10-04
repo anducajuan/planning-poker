@@ -44,7 +44,7 @@ export default function Header() {
       position="static"
       color="default"
       elevation={0}
-      sx={{ backgroundColor: theme.palette.background.paper }}
+      sx={{ backgroundColor: theme.palette.background.paper, width: "100%" }}
     >
       <StyledToolbar>
         <Typography
@@ -54,7 +54,7 @@ export default function Header() {
         >
           Planning Poker
         </Typography>
-        <Grid container spacing={isMobile ? 2 : 4}>
+        <Grid spacing={isMobile ? 2 : 4}>
           <NavButton href="/" startIcon={<CottageIcon />}>
             Home
           </NavButton>
