@@ -22,4 +22,42 @@ export const theme = createTheme({
   typography: {
     fontFamily: "Inter, Roboto, Arial, sans-serif",
   },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: "none",
+          borderRadius: 8,
+          fontWeight: 600,
+        },
+      },
+      variants: [
+        {
+          props: { variant: "contained" },
+          style: ({ theme }) => ({
+            backgroundColor: theme.palette.primary.dark,
+            color: theme.palette.primary.contrastText,
+            boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+            "&:hover": {
+              backgroundColor: theme.palette.primary.dark,
+              color: theme.palette.primary.main,
+              boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+            },
+          }),
+        },
+        {
+          props: { variant: "outlined" },
+          style: ({ theme }) => ({
+            border: `2px solid ${theme.palette.primary.dark}`,
+            color: theme.palette.primary.dark,
+            backgroundColor: "transparent",
+            "&:hover": {
+              border: `2px solid ${theme.palette.primary.dark}`,
+              backgroundColor: "rgba(234, 71, 0, 0.05)",
+            },
+          }),
+        },
+      ],
+    },
+  },
 });

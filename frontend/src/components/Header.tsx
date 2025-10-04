@@ -11,6 +11,7 @@ import type { Theme } from "@mui/material/styles";
 import { theme } from "../theme/theme";
 import CottageIcon from "@mui/icons-material/Cottage";
 import GridViewIcon from "@mui/icons-material/GridView";
+import Logo from "./Logo";
 
 export const StyledToolbar = styled(Toolbar)(({ theme }: { theme: Theme }) => ({
   height: 96,
@@ -36,6 +37,14 @@ export const NavButton = styled(Button)(({ theme }: { theme: Theme }) => ({
   },
 }));
 
+export const LogoText = styled(Typography)(({ theme }: { theme: Theme }) => ({
+  cursor: "pointer",
+  "&:hover": {
+    transition: "all 0.5s ease 0s",
+    color: theme.palette.primary.main,
+  },
+}));
+
 export default function Header() {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -47,14 +56,30 @@ export default function Header() {
       sx={{ backgroundColor: theme.palette.background.paper, width: "100%" }}
     >
       <StyledToolbar>
-        <Typography
-          variant="h6"
-          component="div"
-          sx={{ flexGrow: 1, color: theme.palette.primary.contrastText }}
+        <Grid container alignItems="center" gap={1} xs={isMobile ? 6 : 3}>
+          <Logo
+            sx={{ fontSize: 48, cursor: "pointer" }}
+            onClick={() => {
+              history.replaceState({}, "", "/");
+            }}
+          />
+          <LogoText
+            variant="h6"
+            sx={{ color: theme.palette.primary.contrastText }}
+            onClick={() => {
+              history.replaceState({}, "", "/");
+            }}
+          >
+            Planning Poker
+          </LogoText>
+        </Grid>
+        <Grid
+          container
+          alignItems="center"
+          justifyContent={"flex-end"}
+          gap={isMobile ? 1 : 2}
+          xs={isMobile ? 6 : 7}
         >
-          Planning Poker
-        </Typography>
-        <Grid spacing={isMobile ? 2 : 4}>
           <NavButton href="/" startIcon={<CottageIcon />}>
             Home
           </NavButton>
