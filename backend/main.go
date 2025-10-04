@@ -3,7 +3,8 @@ package main
 import (
 	"flip-planning-poker/config"
 	"flip-planning-poker/middleware"
-	"flip-planning-poker/services/session"
+	"flip-planning-poker/services/sessions"
+	"flip-planning-poker/services/users"
 	"log"
 	"net/http"
 
@@ -18,8 +19,10 @@ func main() {
 	defer db.Close()
 
 	// Configurar dependências dos serviços
-	session.SetDB(db)
-	session.SetBroadcast(broadcast)
+	sessions.SetDB(db)
+	sessions.SetBroadcast(broadcast)
+
+	users.SetDB(db)
 
 	router := mux.NewRouter()
 
@@ -28,10 +31,11 @@ func main() {
 	router.Use(middleware.Logger)
 
 	// REST
-	router.HandleFunc("/sessions", session.GetSessions).Methods("GET")
-	router.HandleFunc("/sessions", session.CreateSession).Methods("POST")
-	router.HandleFunc("/sessions/{id}", session.DeleteSession).Methods("DELETE")
-
+	router.HandleFunc("/sessions", sessions.GetSessions).Methods("GET")
+	router.HandleFunc("/sessions", sessions.CreateSession).Methods("POST")
+	router.HandleFunc("/sessions/{id}", sessions.DeleteSession).Methods("DELETE")
+	router.HandleFunc("/users", users.CreateUser).Methods("POST")
+	router.HandleFunc("/users", users.GetUsers)
 	// WebSocket
 	router.HandleFunc("/ws", handleConnections)
 
