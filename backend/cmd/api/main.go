@@ -3,9 +3,9 @@ package main
 import (
 	"flip-planning-poker/internal/config"
 	"flip-planning-poker/internal/database"
-	middleware "flip-planning-poker/internal/middlewares"
-	"flip-planning-poker/internal/services/sessions"
-	"flip-planning-poker/internal/services/users"
+	"flip-planning-poker/internal/middleware"
+	"flip-planning-poker/internal/services/session"
+	"flip-planning-poker/internal/services/user"
 	"flip-planning-poker/internal/websocket"
 	"log"
 	"net/http"
@@ -18,20 +18,20 @@ func main() {
 
 	database.InitDB(cfg)
 
-	sessions.SetDB(database.GetDB())
-	sessions.SetBroadcast(websocket.GetBroadcastChannel())
-	users.SetDB(database.GetDB())
+	session.SetDB(database.GetDB())
+	session.SetBroadcast(websocket.GetBroadcastChannel())
+	user.SetDB(database.GetDB())
 
 	router := mux.NewRouter()
 
 	router.Use(middleware.CORS)
 	router.Use(middleware.Logger)
 
-	router.HandleFunc("/sessions", sessions.GetSessions).Methods("GET", "OPTIONS")
-	router.HandleFunc("/sessions", sessions.CreateSession).Methods("POST", "OPTIONS")
-	router.HandleFunc("/sessions/{id}", sessions.DeleteSession).Methods("DELETE", "OPTIONS")
-	router.HandleFunc("/users", users.CreateUser).Methods("POST", "OPTIONS")
-	router.HandleFunc("/users", users.GetUsers).Methods("GET", "OPTIONS")
+	router.HandleFunc("/sessions", session.GetSessions).Methods("GET", "OPTIONS")
+	router.HandleFunc("/sessions", session.CreateSession).Methods("POST", "OPTIONS")
+	router.HandleFunc("/sessions/{id}", session.DeleteSession).Methods("DELETE", "OPTIONS")
+	router.HandleFunc("/users", user.CreateUser).Methods("POST", "OPTIONS")
+	router.HandleFunc("/users", user.GetUsers).Methods("GET", "OPTIONS")
 
 	router.HandleFunc("/ws", websocket.HandleConnections)
 
