@@ -20,6 +20,11 @@ type SuccessResponse struct {
 	Total   int         `json:"total"`
 }
 
+type SucessResponseWithoutTotal struct {
+	Data    interface{} `json:"data"`
+	Message string      `json:"message,omitempty"`
+}
+
 // SendError envia uma resposta de erro padronizada
 func SendError(w http.ResponseWriter, statusCode int, err error, message string) {
 	w.Header().Set("Content-Type", "application/json")
@@ -51,16 +56,11 @@ func SendError(w http.ResponseWriter, statusCode int, err error, message string)
 }
 
 // SendSuccess envia uma resposta de sucesso padronizada
-func SendSuccess(w http.ResponseWriter, statusCode int, data interface{}, message string) {
+func SendSuccess(w http.ResponseWriter, statusCode int, data any, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 
-	successResp := SuccessResponse{
-		Data:    data,
-		Message: message,
-	}
-
-	if err := json.NewEncoder(w).Encode(successResp); err != nil {
+	if err := json.NewEncoder(w).Encode(data); err != nil {
 		log.Printf("Erro ao codificar resposta de sucesso: %v", err)
 		SendError(w, http.StatusInternalServerError, err, "Erro interno do servidor")
 		return

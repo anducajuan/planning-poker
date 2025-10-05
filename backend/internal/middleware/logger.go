@@ -73,12 +73,13 @@ func Logger(next http.Handler) http.Handler {
 			j, _ := json.Marshal(logData)
 			fmt.Println(string(j))
 		} else {
-			// Dev (texto legível)
+
+			fullPath := fmt.Sprintf("%s?%s", r.URL.Path, r.URL.Query().Encode())
 			fmt.Printf(
 				"[%s] %s %s %d (%dms)\nReq: %s\nRes: %s\n\n",
 				time.Now().Format(time.RFC3339),
 				r.Method,
-				r.URL.Path,
+				fullPath,
 				lrw.statusCode,
 				latency.Milliseconds(),
 				string(reqBody),

@@ -1,6 +1,7 @@
 package story
 
 import (
+	"encoding/json"
 	"flip-planning-poker/internal/model"
 	"flip-planning-poker/internal/repository"
 	"flip-planning-poker/internal/utils"
@@ -33,12 +34,25 @@ func GetSessionStories(w http.ResponseWriter, r *http.Request) {
 	utils.SendSuccessWithTotal(w, http.StatusOK, stories, len(stories), "Busca realizada com sucesso")
 }
 
-// func CreateUser(w http.ResponseWriter, r *http.Request) {
+func CreateSession(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	var s model.Story
 
-// }
+	if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
+		utils.SendError(w, http.StatusBadRequest, err, "Dados inválidos no corpo da requisição")
+		return
+	}
+	storyRepository := repository.NewStoryRepository(db)
+	err := storyRepository.CreateStory(&s)
 
-func validateStoryData(w http.ResponseWriter, user *model.Story) {
+	if s.Status == "ACTUAL" {
+		utils.Logger("Alterando tipos de outras Stories para 'OLD'")
+		storyRepository.SetStoriesToOld(s.SessionID, s.ID)
+	}
 
+	if err != nil {
+		utils.SendError(w, http.StatusBadRequest, err, "Erro ao criar story")
+		return
+	}
+	utils.SendSuccess(w, http.StatusOK, s, "Story criada com sucesso")
 }
-
-// func getStories

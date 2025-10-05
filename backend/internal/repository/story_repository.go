@@ -2,7 +2,9 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"flip-planning-poker/internal/model"
+	"flip-planning-poker/internal/utils"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -33,4 +35,63 @@ func (r *StoryRepository) FindStoryBySessionId(sessionId string) ([]model.Story,
 		stories = append(stories, s)
 	}
 	return stories, nil
+}
+
+func (r *StoryRepository) CreateStory(story *model.Story) error {
+	validateErrs := validateStoryData(story)
+	if len(validateErrs) > 0 {
+		return validateErrs[0]
+	}
+	err := r.db.QueryRow(context.Background(), `
+		INSERT INTO 
+			stories (name, session_id, status) 
+			VALUES ($1, $2, $3) 
+			returning id`,
+		story.Name, story.SessionID, story.Status).Scan(&story.ID)
+
+	return err
+}
+
+func validateStoryData(story *model.Story) []error {
+	var errs []error
+	possibleStatus := []string{
+		"ACTUAL",
+		"OLD",
+	}
+	if story.Name == "" {
+		errs = append(errs, errors.New("name cannot be an empty string"))
+		return errs
+	}
+	if story.SessionID == "" {
+		errs = append(errs, errors.New("session_id cannot be an empty string"))
+		return errs
+	}
+	if story.Status == "" {
+		errs = append(errs, errors.New("status must be ACTUAL or OLD"))
+		return errs
+	}
+	if !utils.ContainsString(possibleStatus, story.Status) {
+		errs = append(errs, errors.New("status must be ACTUAL or OLD"))
+		return errs
+	}
+	return errs
+}
+
+func (r *StoryRepository) SetStoriesToOld(sessionID string, storyToKeepID int) error {
+
+	updateStatement := `
+		update stories
+		set status = 'OLD'
+		where session_id = $1
+		and id <> $2 
+		and status <> 'OLD'
+	`
+
+	_, err := r.db.Exec(context.Background(), updateStatement, sessionID, storyToKeepID)
+	if err != nil {
+		utils.Logger("Erro ao atualizar stories", err)
+		return err
+	}
+
+	return nil
 }
