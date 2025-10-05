@@ -10,23 +10,26 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var db *pgxpool.Pool
-
-func SetDB(database *pgxpool.Pool) {
-	db = database
+type StoryService struct {
+	db   *pgxpool.Pool
+	repo *repository.StoryRepository
 }
 
-func GetSessionStories(w http.ResponseWriter, r *http.Request) {
+func NewStoryService(database *pgxpool.Pool) *StoryService {
+	return &StoryService{
+		db:   database,
+		repo: repository.NewStoryRepository(database),
+	}
+}
+
+func (s *StoryService) GetSessionStories(w http.ResponseWriter, r *http.Request) {
 	sessionId := r.URL.Query().Get("session_id")
-	var err error
 	if sessionId == "" {
-		utils.SendError(w, http.StatusBadRequest, err, "Necessário informar um id de sessão válido")
+		utils.SendError(w, http.StatusBadRequest, nil, "Necessário informar um id de sessão válido")
 		return
 	}
 
-	storyRepo := repository.NewStoryRepository(db)
-
-	stories, err := storyRepo.FindStoryBySessionId(sessionId)
+	stories, err := s.repo.FindStoryBySessionId(sessionId)
 	if err != nil {
 		utils.SendError(w, http.StatusInternalServerError, err, "Erro ao buscar stories")
 		return
@@ -34,25 +37,25 @@ func GetSessionStories(w http.ResponseWriter, r *http.Request) {
 	utils.SendSuccessWithTotal(w, http.StatusOK, stories, len(stories), "Busca realizada com sucesso")
 }
 
-func CreateStory(w http.ResponseWriter, r *http.Request) {
+func (s *StoryService) CreateStory(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	var s model.Story
+	var story model.Story
 
-	if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&story); err != nil {
 		utils.SendError(w, http.StatusBadRequest, err, "Dados inválidos no corpo da requisição")
 		return
 	}
-	storyRepository := repository.NewStoryRepository(db)
-	err := storyRepository.CreateStory(&s)
 
-	if s.Status == "ACTUAL" {
-		utils.Logger("Alterando tipos de outras Stories para 'OLD'")
-		storyRepository.SetStoriesToOld(s.SessionID, s.ID)
-	}
-
+	err := s.repo.CreateStory(&story)
 	if err != nil {
 		utils.SendError(w, http.StatusBadRequest, err, "Erro ao criar story")
 		return
 	}
-	utils.SendSuccess(w, http.StatusCreated, s, "Story criada com sucesso")
+
+	if story.Status == "ACTUAL" {
+		utils.Logger("Alterando tipos de outras Stories para 'OLD'")
+		s.repo.SetStoriesToOld(story.SessionID, story.ID)
+	}
+
+	utils.SendSuccess(w, http.StatusCreated, story, "Story criada com sucesso")
 }

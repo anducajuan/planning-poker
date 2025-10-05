@@ -10,24 +10,29 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var db *pgxpool.Pool
-var voteRepository *repository.VoteRepository
-
-func Init(database *pgxpool.Pool) {
-	db = database
-	voteRepository = repository.NewVoteRepository(db)
+type VoteService struct {
+	db   *pgxpool.Pool
+	repo *repository.VoteRepository
 }
 
-func CreateVote(w http.ResponseWriter, r *http.Request) {
+func NewVoteService(database *pgxpool.Pool) *VoteService {
+	return &VoteService{
+		db:   database,
+		repo: repository.NewVoteRepository(database),
+	}
+}
+
+func (s *VoteService) CreateVote(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var v model.Vote
 
 	if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
 		utils.SendError(w, http.StatusBadRequest, err, "Erro ao ler dados da requisição")
+		return
 	}
 
-	err := voteRepository.CreateVote(ctx, &v)
+	err := s.repo.CreateVote(ctx, &v)
 	if err != nil {
 		utils.SendError(w, http.StatusInternalServerError, err, "Erro ao criar voto")
 		return

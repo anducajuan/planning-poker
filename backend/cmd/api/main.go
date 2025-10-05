@@ -20,31 +20,31 @@ func main() {
 
 	database.InitDB(cfg)
 
-	session.SetDB(database.GetDB())
-	session.SetBroadcast(websocket.GetBroadcastChannel())
+	wsService := websocket.NewWebSocketService()
 
-	user.SetDB(database.GetDB())
+	sessionService := session.NewSessionService(database.GetDB())
+	sessionService.SetWebSocketService(wsService)
 
-	story.SetDB(database.GetDB())
-
-	vote.Init(database.GetDB())
+	userService := user.NewUserService(database.GetDB())
+	storyService := story.NewStoryService(database.GetDB())
+	voteService := vote.NewVoteService(database.GetDB())
 
 	router := mux.NewRouter()
 
 	router.Use(middleware.CORS)
 	router.Use(middleware.Logger)
 
-	router.HandleFunc("/sessions", session.GetSessions).Methods("GET", "OPTIONS")
-	router.HandleFunc("/sessions", session.CreateSession).Methods("POST", "OPTIONS")
-	router.HandleFunc("/sessions/{id}", session.DeleteSession).Methods("DELETE", "OPTIONS")
+	router.HandleFunc("/sessions", sessionService.GetSessions).Methods("GET", "OPTIONS")
+	router.HandleFunc("/sessions", sessionService.CreateSession).Methods("POST", "OPTIONS")
+	router.HandleFunc("/sessions/{id}", sessionService.DeleteSession).Methods("DELETE", "OPTIONS")
 
-	router.HandleFunc("/users", user.CreateUser).Methods("POST", "OPTIONS")
-	router.HandleFunc("/users", user.GetUsers).Methods("GET", "OPTIONS")
+	router.HandleFunc("/users", userService.CreateUser).Methods("POST", "OPTIONS")
+	router.HandleFunc("/users", userService.GetUsers).Methods("GET", "OPTIONS")
 
-	router.HandleFunc("/stories", story.GetSessionStories).Methods("GET", "OPTIONS")
-	router.HandleFunc("/stories", story.CreateStory).Methods("POST", "OPTIONS")
+	router.HandleFunc("/stories", storyService.GetSessionStories).Methods("GET", "OPTIONS")
+	router.HandleFunc("/stories", storyService.CreateStory).Methods("POST", "OPTIONS")
 
-	router.HandleFunc("/votes", vote.CreateVote).Methods("POST", "OPTIONS")
+	router.HandleFunc("/votes", voteService.CreateVote).Methods("POST", "OPTIONS")
 	router.HandleFunc("/ws", websocket.HandleConnections)
 
 	router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

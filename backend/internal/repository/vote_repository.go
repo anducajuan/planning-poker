@@ -20,8 +20,8 @@ func (r *VoteRepository) CreateVote(ctx context.Context, v *model.Vote) error {
 		v.Status = "HIDDEN"
 	}
 	insertStatement := "insert into votes (vote, user_id, session_id, story_id, status) values($1, $2, $3, $4,$5 )"
-	var err error
-	_, err = r.db.Exec(ctx, insertStatement, v.Vote, v.UserID, v.SessionID, v.StoryID, v.Status)
+
+	err := r.db.QueryRow(ctx, insertStatement, v.Vote, v.UserID, v.SessionID, v.StoryID, v.Status).Scan(&v)
 
 	return err
 

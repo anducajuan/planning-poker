@@ -81,15 +81,30 @@ func (h *Hub) Run() {
 			}
 
 			h.mu.RLock()
+			clientsToRemove := []*Client{}
 			for client := range h.clients {
 				select {
 				case client.send <- data:
+					// Mensagem enviada com sucesso
 				default:
-					close(client.send)
-					delete(h.clients, client)
+					// Cliente não conseguiu receber, marcar para remoção
+					clientsToRemove = append(clientsToRemove, client)
 				}
 			}
 			h.mu.RUnlock()
+
+			// Remover clientes desconectados
+			if len(clientsToRemove) > 0 {
+				h.mu.Lock()
+				for _, client := range clientsToRemove {
+					if _, ok := h.clients[client]; ok {
+						close(client.send)
+						delete(h.clients, client)
+					}
+				}
+				h.mu.Unlock()
+				log.Printf("Removidos %d clientes desconectados", len(clientsToRemove))
+			}
 		}
 	}
 }
@@ -129,22 +144,34 @@ func (c *Client) writePump() {
 	}
 }
 
-var hub *Hub
-var broadcast chan interface{}
+// Instância global para compatibilidade (será removida posteriormente)
+var globalService *WebSocketService
 
 func init() {
-	hub = NewHub()
-	broadcast = hub.GetBroadcastChannel()
-	go hub.Run()
+	globalService = NewWebSocketService()
 }
 
-// GetBroadcastChannel retorna o canal de broadcast global
+// GetBroadcastChannel retorna o canal de broadcast global (para compatibilidade)
 func GetBroadcastChannel() chan interface{} {
-	return broadcast
+	if globalService != nil {
+		return globalService.hub.broadcast
+	}
+	return nil
+}
+
+// GetGlobalService retorna a instância global do WebSocketService
+func GetGlobalService() *WebSocketService {
+	return globalService
 }
 
 // HandleConnections lida com as conexões WebSocket
 func HandleConnections(w http.ResponseWriter, r *http.Request) {
+	if globalService == nil {
+		log.Printf("WebSocket service não inicializado")
+		http.Error(w, "WebSocket service não disponível", http.StatusInternalServerError)
+		return
+	}
+
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Printf("Erro ao fazer upgrade da conexão: %v", err)
@@ -152,7 +179,7 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 	}
 
 	client := &Client{
-		hub:  hub,
+		hub:  globalService.hub,
 		conn: conn,
 		send: make(chan []byte, 256),
 	}
