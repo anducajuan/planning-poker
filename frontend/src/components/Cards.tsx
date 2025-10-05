@@ -7,7 +7,8 @@ interface CardProps {
   value?: string;
   selected?: boolean;
   color: string;
-  onClick: () => void;
+  onClick?: () => void;
+  scale?: number;
 }
 
 export const PokerCard = styled(Grid)(
@@ -21,12 +22,12 @@ export const PokerCard = styled(Grid)(
     color: string;
   }) => ({
     backgroundColor: color,
-    height: selected ? 162 : 144,
-    width: selected ? 124 : 108,
+    height: selected ? 136 : 124,
+    width: selected ? 96 : 84,
     borderRadius: 12,
     boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
     color: theme.palette.primary.main,
-    margin: "16px",
+    margin: "8px",
     padding: "16px",
     display: "flex",
     justifyContent: "space-between",
@@ -37,13 +38,20 @@ export const PokerCard = styled(Grid)(
       transform: "translateY(-4px)",
     },
     [theme.breakpoints.down("sm")]: {
-      height: 90,
-      margin: 0,
+      height: selected ? 136 : 124,
+      width: selected ? 96 : 84,
+      margin: 4,
     },
   })
 );
 
-export default function Card({ value, selected, color, onClick }: CardProps) {
+export default function Card({
+  value,
+  selected,
+  color,
+  onClick,
+  scale,
+}: CardProps) {
   return (
     <PokerCard
       container
@@ -51,6 +59,7 @@ export default function Card({ value, selected, color, onClick }: CardProps) {
       color={color}
       theme={theme}
       onClick={onClick}
+      style={{ scale: scale || 1 }}
     >
       <Grid xs={12} style={{ height: "15%" }}>
         <Typography style={{ fontSize: 12 }}>{value || "?"}</Typography>
@@ -62,7 +71,7 @@ export default function Card({ value, selected, color, onClick }: CardProps) {
         display="flex"
         justifyContent="center"
       >
-        <Typography style={{ fontSize: 56 }}>{value || "?"}</Typography>
+        <Typography style={{ fontSize: 40 }}>{value || "?"}</Typography>
       </Grid>
       <Grid
         xs={12}

@@ -8,6 +8,8 @@ import api from "../../services/api";
 import { toast } from "react-toastify";
 import { theme } from "../../theme/theme";
 import { AxiosError } from "axios";
+import { VoteTable } from "./sections/voteTable";
+import { SessionData } from "./sections/sessionData";
 
 export const SessionNameTextField = styled(TextField)(() => ({
   margin: "0px 15%",
@@ -60,24 +62,37 @@ export function Session() {
   };
 
   return (
-    <Grid
-      container
-      justifyContent="center"
-      alignItems="center"
-      style={{ minHeight: "200px" }}
-    >
+    <Grid container justifyContent="center" alignItems="center">
       {sessionId ? (
-        <>
-          {cards.map((card) => (
-            <Card
-              key={card}
-              value={String(card)}
-              selected={card == selectedCard}
-              color={mapearCor({ valor: card })}
-              onClick={() => handleCardClick(card)}
-            />
-          ))}
-        </>
+        <Grid container justifyContent={"center"}>
+          <Grid item xs={12} lg={6}>
+            <VoteTable />
+          </Grid>
+          <Grid item xs={12} lg={6}>
+            <SessionData />
+          </Grid>
+
+          <Grid
+            item
+            display={"flex"}
+            direction={"row"}
+            style={{ minHeight: "180px", marginTop: 24 }}
+          >
+            <Grid container justifyContent={"center"} alignItems={"center"}>
+              {cards.map((card, index) => (
+                <Grid item display={"flex"} direction={"row"} key={index}>
+                  <Card
+                    key={card}
+                    value={String(card)}
+                    selected={card == selectedCard}
+                    color={mapearCor({ valor: card })}
+                    onClick={() => handleCardClick(card)}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+          </Grid>
+        </Grid>
       ) : (
         <Grid
           container
