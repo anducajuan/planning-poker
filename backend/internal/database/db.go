@@ -1,8 +1,8 @@
-package main
+package database
 
 import (
 	"context"
-	"flip-planning-poker/config"
+	"flip-planning-poker/internal/config"
 	"log"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -10,7 +10,7 @@ import (
 
 var db *pgxpool.Pool
 
-func initDB(cfg *config.Config) {
+func InitDB(cfg *config.Config) {
 	var err error
 	db, err = pgxpool.New(context.Background(), cfg.DatabaseURL)
 	if err != nil {
@@ -23,4 +23,14 @@ func initDB(cfg *config.Config) {
 	}
 
 	log.Println("Conexão com banco de dados estabelecida com sucesso")
+}
+
+func GetDB() *pgxpool.Pool {
+	return db
+}
+
+func Close() {
+	if db != nil {
+		db.Close()
+	}
 }

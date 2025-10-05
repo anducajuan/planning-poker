@@ -41,7 +41,8 @@ go mod download
 
 2. Configure o banco de dados executando as migrações:
 ```bash
-cd migrations
+cd internal/database/migrations
+chmod +x run.sh
 ./run.sh
 ```
 
@@ -49,7 +50,7 @@ cd migrations
 
 Usando o Golang:
 ```bash
-go run .
+go run cmd/api/main.go
 ```
 
 Usando air:
@@ -65,6 +66,41 @@ export PATH=$PATH:$(go env GOPATH)/bin
 E com isso, após recarregar o seu shell, inicie a aplicação com o comando `air`
 
 
+## Estrutura do Projeto
+
+```
+backend/
+├── cmd/
+│   └── api/
+│       └── main.go              # Ponto de entrada da aplicação
+├── internal/
+│   ├── config/
+│   │   └── config.go            # Configurações da aplicação
+│   ├── database/
+│   │   ├── db.go                # Conexão com banco de dados
+│   │   └── migrations/          # Scripts de migração
+│   │       ├── run.sh           # Script para executar migrações
+│   │       └── sql/
+│   │           └── 1_create_inicial_structure.sql
+│   ├── middlewares/
+│   │   ├── cors.go              # Middleware CORS
+│   │   └── logger.go            # Middleware de logging
+│   ├── models/
+│   │   └── models.go            # Modelos de dados
+│   ├── services/
+│   │   ├── sessions/            # Serviços de sessões
+│   │   │   └── sessions.go
+│   │   └── users/               # Serviços de usuários
+│   │       └── users.go
+│   ├── utils/
+│   │   └── response.go          # Utilitários para respostas HTTP
+│   └── websocket/
+│       └── websocket.go         # Configuração WebSocket
+├── go.mod
+├── go.sum
+└── README.md
+```
+
 ## API Endpoints
 
 ### Sessions
@@ -72,6 +108,11 @@ E com isso, após recarregar o seu shell, inicie a aplicação com o comando `ai
 - `GET /sessions` - Lista todas as sessões
 - `POST /sessions` - Cria uma nova sessão
 - `DELETE /sessions/{id}` - Deleta uma sessão
+
+### Users
+
+- `GET /users` - Lista todos os usuários (com filtro opcional por session_id)
+- `POST /users` - Cria um novo usuário
 
 ### WebSocket
 

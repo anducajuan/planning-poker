@@ -1,10 +1,12 @@
 package main
 
 import (
-	"flip-planning-poker/config"
-	"flip-planning-poker/middleware"
-	"flip-planning-poker/services/sessions"
-	"flip-planning-poker/services/users"
+	"flip-planning-poker/internal/config"
+	"flip-planning-poker/internal/database"
+	middleware "flip-planning-poker/internal/middlewares"
+	"flip-planning-poker/internal/services/sessions"
+	"flip-planning-poker/internal/services/users"
+	"flip-planning-poker/internal/websocket"
 	"log"
 	"net/http"
 
@@ -12,32 +14,26 @@ import (
 )
 
 func main() {
-	// Carregar configurações
 	cfg := config.LoadConfig()
 
-	initDB(cfg)
-	defer db.Close()
+	database.InitDB(cfg)
 
-	sessions.SetDB(db)
-	sessions.SetBroadcast(broadcast)
-
-	users.SetDB(db)
+	sessions.SetDB(database.GetDB())
+	sessions.SetBroadcast(websocket.GetBroadcastChannel())
+	users.SetDB(database.GetDB())
 
 	router := mux.NewRouter()
 
-	// Middlewares
 	router.Use(middleware.CORS)
 	router.Use(middleware.Logger)
 
-	// REST
 	router.HandleFunc("/sessions", sessions.GetSessions).Methods("GET", "OPTIONS")
 	router.HandleFunc("/sessions", sessions.CreateSession).Methods("POST", "OPTIONS")
-	//router.HandleFunc("/sessions", optionTest).Methods("OPTIONS")
 	router.HandleFunc("/sessions/{id}", sessions.DeleteSession).Methods("DELETE", "OPTIONS")
 	router.HandleFunc("/users", users.CreateUser).Methods("POST", "OPTIONS")
 	router.HandleFunc("/users", users.GetUsers).Methods("GET", "OPTIONS")
-	// WebSocket
-	router.HandleFunc("/ws", handleConnections)
+
+	router.HandleFunc("/ws", websocket.HandleConnections)
 
 	router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Rota não encontrada: %s %s", r.Method, r.URL.Path)

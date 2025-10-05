@@ -3,7 +3,7 @@ package users
 import (
 	"context"
 	"encoding/json"
-	"flip-planning-poker/utils"
+	"flip-planning-poker/internal/utils"
 	"net/http"
 
 	"github.com/jackc/pgx/v5"

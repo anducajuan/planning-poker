@@ -3,7 +3,7 @@ package sessions
 import (
 	"context"
 	"encoding/json"
-	"flip-planning-poker/utils"
+	"flip-planning-poker/internal/utils"
 	"net/http"
 
 	"github.com/gorilla/mux"

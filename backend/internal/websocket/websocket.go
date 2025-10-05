@@ -1,4 +1,4 @@
-package main
+package websocket
 
 import (
 	"encoding/json"
@@ -138,7 +138,13 @@ func init() {
 	go hub.Run()
 }
 
-func handleConnections(w http.ResponseWriter, r *http.Request) {
+// GetBroadcastChannel retorna o canal de broadcast global
+func GetBroadcastChannel() chan interface{} {
+	return broadcast
+}
+
+// HandleConnections lida com as conexões WebSocket
+func HandleConnections(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Printf("Erro ao fazer upgrade da conexão: %v", err)
