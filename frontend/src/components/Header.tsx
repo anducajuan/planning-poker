@@ -20,7 +20,7 @@ export const StyledToolbar = styled(Toolbar)(({ theme }: { theme: Theme }) => ({
   display: "flex",
   justifyContent: "space-between",
   margin: "0px 15%",
-  [theme.breakpoints.down("sm")]: {
+  [theme.breakpoints.down("md")]: {
     height: 64,
     margin: 0,
   },
@@ -47,7 +47,7 @@ export const LogoText = styled(Typography)(({ theme }: { theme: Theme }) => ({
 }));
 
 export default function Header() {
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const navigate = useNavigate();
 
   return (
