@@ -1,6 +1,5 @@
 import { ThemeProvider, CssBaseline } from "@mui/material";
 import { theme } from "./theme/theme";
-import Header from "./components/Header";
 import { AppRoutes } from "./routes";
 import { ToastContainer, Bounce } from "react-toastify";
 
@@ -16,7 +15,6 @@ export default function App() {
         theme="colored"
         transition={Bounce}
       />
-      <Header />
       <AppRoutes />
     </ThemeProvider>
   );
