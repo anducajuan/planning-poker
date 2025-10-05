@@ -34,7 +34,7 @@ func GetSessionStories(w http.ResponseWriter, r *http.Request) {
 	utils.SendSuccessWithTotal(w, http.StatusOK, stories, len(stories), "Busca realizada com sucesso")
 }
 
-func CreateSession(w http.ResponseWriter, r *http.Request) {
+func CreateStory(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	var s model.Story
 

@@ -37,7 +37,7 @@ func main() {
 	router.HandleFunc("/users", user.GetUsers).Methods("GET", "OPTIONS")
 
 	router.HandleFunc("/stories", story.GetSessionStories).Methods("GET", "OPTIONS")
-	router.HandleFunc("/stories", story.CreateSession).Methods("POST", "OPTIONS")
+	router.HandleFunc("/stories", story.CreateStory).Methods("POST", "OPTIONS")
 
 	router.HandleFunc("/ws", websocket.HandleConnections)
 
