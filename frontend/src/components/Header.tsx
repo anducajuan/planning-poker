@@ -12,6 +12,7 @@ import { theme } from "../theme/theme";
 import CottageIcon from "@mui/icons-material/Cottage";
 import GridViewIcon from "@mui/icons-material/GridView";
 import Logo from "./Logo";
+import { useNavigate } from "react-router-dom";
 
 export const StyledToolbar = styled(Toolbar)(({ theme }: { theme: Theme }) => ({
   height: 96,
@@ -47,6 +48,7 @@ export const LogoText = styled(Typography)(({ theme }: { theme: Theme }) => ({
 
 export default function Header() {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const navigate = useNavigate();
 
   return (
     <AppBar
@@ -56,18 +58,18 @@ export default function Header() {
       sx={{ backgroundColor: theme.palette.background.paper, width: "100%" }}
     >
       <StyledToolbar>
-        <Grid container alignItems="center" gap={1} xs={isMobile ? 6 : 3}>
+        <Grid container alignItems="center" gap={1} xs={isMobile ? 6 : 4}>
           <Logo
             sx={{ fontSize: 48, cursor: "pointer" }}
             onClick={() => {
-              history.replaceState({}, "", "/");
+              navigate("/");
             }}
           />
           <LogoText
             variant="h6"
             sx={{ color: theme.palette.primary.contrastText }}
             onClick={() => {
-              history.replaceState({}, "", "/");
+              navigate("/");
             }}
           >
             Planning Poker
@@ -78,7 +80,7 @@ export default function Header() {
           alignItems="center"
           justifyContent={"flex-end"}
           gap={isMobile ? 1 : 2}
-          xs={isMobile ? 6 : 7}
+          xs={isMobile ? 6 : 8}
         >
           <NavButton href="/" startIcon={<CottageIcon />}>
             Home

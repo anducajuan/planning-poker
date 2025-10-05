@@ -59,5 +59,36 @@ export const theme = createTheme({
         },
       ],
     },
+    MuiTextField: {
+      variants: [
+        {
+          props: { variant: "standard" },
+          style: ({ theme }) => ({
+            "& .MuiInputBase-input": {
+              color: theme.palette.primary.main,
+            },
+            "& .MuiInputLabel-root": {
+              color: theme.palette.primary.contrastText,
+            },
+            "& .MuiInput-underline:": {
+              borderBottomColor: theme.palette.primary.dark,
+            },
+            "& .MuiInput-underline:before": {
+              borderBottomColor: theme.palette.primary.dark,
+              color: theme.palette.primary.main,
+            },
+            "& .MuiInput-underline:hover:before": {
+              borderBottomColor: theme.palette.primary.dark,
+            },
+            "& .MuiInput-underline:after": {
+              borderBottomColor: theme.palette.primary.dark,
+            },
+            "& .MuiInput-underline:hover:after": {
+              borderBottomColor: theme.palette.primary.dark,
+            },
+          }),
+        },
+      ],
+    },
   },
 });

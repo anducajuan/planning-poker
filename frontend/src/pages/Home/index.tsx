@@ -1,11 +1,7 @@
-import { Box, Button, Grid, Typography } from "@mui/material";
+import { Box, Button, Grid, Typography, useMediaQuery } from "@mui/material";
 import { theme } from "../../theme/theme";
 import type { Theme } from "@mui/material/styles";
 import { styled } from "@mui/material/styles";
-import api from "../../services/api";
-import { v4 as uuidv4 } from "uuid";
-import { toast } from "react-toastify";
-//import { useNavigate } from "react-router-dom";
 
 export const Image = styled("img")(({ theme }: { theme: Theme }) => ({
   width: "100%",
@@ -20,22 +16,7 @@ export const Image = styled("img")(({ theme }: { theme: Theme }) => ({
 }));
 
 export function Home() {
-  //const navigate = useNavigate();
-
-  const handleCreateSession = async () => {
-    try {
-      const response = await api.post("/sessions", {
-        name: uuidv4(),
-      });
-
-      console.log(response.data);
-      //localStorage.setItem("sessionId", "");
-      //navigate(`/session/${}`);
-    } catch (error) {
-      toast.error("Erro ao criar sessão. Tente novamente.");
-      console.log(error);
-    }
-  };
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   return (
     <Grid
@@ -45,13 +26,17 @@ export function Home() {
         position: "relative",
         overflow: "hidden",
         backgroundColor: theme.palette.background.paper,
-        height: 640,
+        height: isMobile ? 864 : 640,
         color: theme.palette.primary.main,
         padding: "48px calc(15% + 24px)",
-        clipPath: "polygon(0 0, 100% 0, 100% 100%, 0% 70%)",
+        clipPath: isMobile
+          ? "polygon(0 0, 100% 0, 100% 100%, 0% 85%)"
+          : "polygon(0 0, 100% 0, 100% 100%, 0% 70%)",
       }}
+      justifyContent={"space-between"}
+      gap={2}
     >
-      <Grid item xs={12} md={6}>
+      <Grid item xs={12} md={5}>
         <Typography
           sx={{
             fontSize: 48,
@@ -75,15 +60,13 @@ export function Home() {
           <Button
             variant="contained"
             style={{ width: 240, height: 40 }}
-            onClick={() => {
-              handleCreateSession();
-            }}
+            href="/session"
           >
-            Criar sessão
+            Criar uma sessão
           </Button>
         </Grid>
       </Grid>
-      <Grid item xs={12} md={6} justifyContent={"flex-end"} display={"flex"}>
+      <Grid item xs={12} md={5} justifyContent={"flex-end"} display={"flex"}>
         <Box>
           <Image src="./session.png" alt="Session" />
         </Box>
