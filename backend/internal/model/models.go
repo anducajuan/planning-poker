@@ -24,4 +24,5 @@ type Vote struct {
 	UserID    int    `json:"user_id"`    // FK -> users.id
 	SessionID string `json:"session_id"` // FK -> sessions.id
 	StoryID   int    `json:"story_id"`   // FK -> stories.id
+	Status    string `json:"status"`
 }

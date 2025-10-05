@@ -54,5 +54,5 @@ func CreateStory(w http.ResponseWriter, r *http.Request) {
 		utils.SendError(w, http.StatusBadRequest, err, "Erro ao criar story")
 		return
 	}
-	utils.SendSuccess(w, http.StatusOK, s, "Story criada com sucesso")
+	utils.SendSuccess(w, http.StatusCreated, s, "Story criada com sucesso")
 }

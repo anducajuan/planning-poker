@@ -7,6 +7,7 @@ import (
 	"flip-planning-poker/internal/services/session"
 	"flip-planning-poker/internal/services/story"
 	"flip-planning-poker/internal/services/user"
+	"flip-planning-poker/internal/services/vote"
 	"flip-planning-poker/internal/websocket"
 	"log"
 	"net/http"
@@ -21,8 +22,12 @@ func main() {
 
 	session.SetDB(database.GetDB())
 	session.SetBroadcast(websocket.GetBroadcastChannel())
+
 	user.SetDB(database.GetDB())
+
 	story.SetDB(database.GetDB())
+
+	vote.Init(database.GetDB())
 
 	router := mux.NewRouter()
 
@@ -39,6 +44,7 @@ func main() {
 	router.HandleFunc("/stories", story.GetSessionStories).Methods("GET", "OPTIONS")
 	router.HandleFunc("/stories", story.CreateStory).Methods("POST", "OPTIONS")
 
+	router.HandleFunc("/votes", vote.CreateVote).Methods("POST", "OPTIONS")
 	router.HandleFunc("/ws", websocket.HandleConnections)
 
 	router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
