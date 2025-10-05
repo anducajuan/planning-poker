@@ -66,20 +66,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if u.Name == "" {
-		utils.SendError(w, http.StatusBadRequest, nil, "Nome do usuário é obrigatório")
-		return
-	}
-
-	if u.SessionID == "" {
-		utils.SendError(w, http.StatusBadRequest, nil, "ID da sessão é obrigatório")
-		return
-	}
-
-	if verifyIfNameAlreadyExists(u.Name) {
-		utils.SendError(w, http.StatusBadRequest, nil, "Nome do usuário já existe")
-		return
-	}
+	validateUserData(w, &u)
 
 	err := db.QueryRow(
 		context.Background(),
@@ -104,4 +91,21 @@ func verifyIfNameAlreadyExists(name string) bool {
 	}
 
 	return id != ""
+}
+
+func validateUserData(w http.ResponseWriter, user *User) {
+	if user.Name == "" {
+		utils.SendError(w, http.StatusBadRequest, nil, "Nome do usuário é obrigatório")
+		return
+	}
+
+	if user.SessionID == "" {
+		utils.SendError(w, http.StatusBadRequest, nil, "ID da sessão é obrigatório")
+		return
+	}
+
+	if verifyIfNameAlreadyExists(user.Name) {
+		utils.SendError(w, http.StatusBadRequest, nil, "Nome do usuário já existe")
+		return
+	}
 }

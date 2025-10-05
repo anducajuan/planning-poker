@@ -18,7 +18,6 @@ func main() {
 	initDB(cfg)
 	defer db.Close()
 
-	// Configurar dependências dos serviços
 	sessions.SetDB(db)
 	sessions.SetBroadcast(broadcast)
 
@@ -31,11 +30,12 @@ func main() {
 	router.Use(middleware.Logger)
 
 	// REST
-	router.HandleFunc("/sessions", sessions.GetSessions).Methods("GET")
-	router.HandleFunc("/sessions", sessions.CreateSession).Methods("POST")
-	router.HandleFunc("/sessions/{id}", sessions.DeleteSession).Methods("DELETE")
-	router.HandleFunc("/users", users.CreateUser).Methods("POST")
-	router.HandleFunc("/users", users.GetUsers)
+	router.HandleFunc("/sessions", sessions.GetSessions).Methods("GET", "OPTIONS")
+	router.HandleFunc("/sessions", sessions.CreateSession).Methods("POST", "OPTIONS")
+	//router.HandleFunc("/sessions", optionTest).Methods("OPTIONS")
+	router.HandleFunc("/sessions/{id}", sessions.DeleteSession).Methods("DELETE", "OPTIONS")
+	router.HandleFunc("/users", users.CreateUser).Methods("POST", "OPTIONS")
+	router.HandleFunc("/users", users.GetUsers).Methods("GET", "OPTIONS")
 	// WebSocket
 	router.HandleFunc("/ws", handleConnections)
 

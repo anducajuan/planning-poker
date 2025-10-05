@@ -2,22 +2,6 @@
 
 Backend da aplicação de Planning Poker desenvolvido em Go.
 
-## Estrutura do Projeto
-
-```
-backend/
-├── config/          # Configurações da aplicação
-├── middleware/      # Middlewares HTTP
-├── migrations/      # Migrações do banco de dados
-├── services/        # Serviços de negócio
-│   └── session/     # Serviço de sessões
-├── utils/           # Utilitários
-├── main.go          # Ponto de entrada da aplicação
-├── models.go        # Modelos de dados
-├── db.go           # Configuração do banco
-└── websocket.go    # Implementação do WebSocket
-```
-
 ## Configuração
 
 ### Variáveis de Ambiente
@@ -62,9 +46,24 @@ cd migrations
 ```
 
 3. Execute a aplicação:
+
+Usando o Golang:
 ```bash
 go run .
 ```
+
+Usando air:
+
+Para instalar o air, na raíz do projeto backend, execute:
+```bash
+go install github.com/air-verse/air@latest
+```
+Se estiver no linux, adicione esta linha no final do seu ~/.bash ou ~/.zshrc:
+```bash
+export PATH=$PATH:$(go env GOPATH)/bin
+```
+E com isso, após recarregar o seu shell, inicie a aplicação com o comando `air`
+
 
 ## API Endpoints
 
