@@ -17,7 +17,7 @@ type ErrorResponse struct {
 type SuccessResponse struct {
 	Data    interface{} `json:"data"`
 	Message string      `json:"message,omitempty"`
-	Total   int         `json:"total,omitempty"`
+	Total   int         `json:"total"`
 }
 
 // SendError envia uma resposta de erro padronizada
