@@ -4,6 +4,7 @@ import { alpha, styled } from "@mui/material/styles";
 import { useEffect, useState } from "react";
 import Card from "../../../components/Cards";
 import { theme } from "../../../theme/theme";
+import { mapearCor } from "../../../utils/colors";
 
 interface Player {
   id: number;
@@ -11,6 +12,13 @@ interface Player {
   vote: string | number;
   position: number;
 }
+
+const tableSides = [
+  [1, 5, 9, 11],
+  [2, 6],
+  [3, 7, 10, 12],
+  [4, 8],
+];
 
 const playersLit = [
   {
@@ -87,7 +95,7 @@ const playersLit = [
   },
 ];
 
-export const GridTable = styled(Grid)(({ theme }: { theme: Theme }) => ({
+export const GridTable = styled(Grid)(() => ({
   width: "100%",
   margin: "16px 0px",
   padding: "0px 36px",
@@ -112,7 +120,7 @@ export const BoxTable = styled(Box)(({ theme }: { theme: Theme }) => ({
 
 export const VoteTable = () => {
   const [players, setPlayers] = useState<Player[]>([]);
-  const [isRevealed, setIsRevealed] = useState<boolean>(false);
+  const [isRevealed, setIsRevealed] = useState<boolean>(true);
 
   useEffect(() => {
     setPlayers(playersLit);
@@ -120,196 +128,155 @@ export const VoteTable = () => {
 
   return (
     <GridTable container justifyContent={"center"}>
-      <Grid
-        item
-        xs={1}
-        justifyContent={"center"}
-        alignItems={"center"}
-        display={"flex"}
-      >
-        <Grid item xs={12}>
-          {players.map(
-            (player, index) =>
-              [4, 8].includes(player.position) && (
-                <Grid
-                  item
-                  key={index}
-                  alignItems={"center"}
-                  display={"flex"}
-                  direction={"column"}
-                >
-                  <Card
-                    value={isRevealed ? String(player.vote) : "🤔"}
-                    selected={false}
-                    color={
-                      isRevealed
-                        ? theme.palette.background.paper
-                        : theme.palette.background.paper
-                    }
-                    scale={0.75}
-                  />
-                  <Typography
-                    key={index}
+      {players.length === 0 ? (
+        <Grid>
+          <Typography>Carregando...</Typography>
+        </Grid>
+      ) : (
+        <>
+          <Grid
+            item
+            xs={1}
+            justifyContent={"center"}
+            alignItems={"center"}
+            display={"flex"}
+          >
+            <Grid item xs={12}>
+              <MapPlayers
+                idxs={tableSides[3]}
+                players={players.filter((player: Player) =>
+                  tableSides[3].includes(player.position)
+                )}
+                isRevealed={isRevealed}
+              />
+            </Grid>
+          </Grid>
+          <Grid item xs={8}>
+            <Grid container xs={12} gap={2}>
+              <Grid
+                container
+                justifyContent={"space-evenly"}
+                alignItems={"center"}
+              >
+                <MapPlayers
+                  idxs={tableSides[0]}
+                  players={players.filter((player: Player) =>
+                    tableSides[0].includes(player.position)
+                  )}
+                  isRevealed={isRevealed}
+                />
+              </Grid>
+              <Grid
+                item
+                xs={12}
+                display={"flex"}
+                justifyContent={"center"}
+                alignItems={"center"}
+              >
+                <BoxTable>
+                  <Button
+                    variant="contained"
                     style={{
-                      textAlign: "center",
-                      color: theme.palette.primary.contrastText,
-                      fontSize: 15,
-                      fontWeight: "bold",
-                      marginTop: "-16px",
+                      minWidth: "40%",
+                      height: "44px",
                     }}
                   >
-                    {player.name}
-                  </Typography>
-                </Grid>
-              )
-          )}
-        </Grid>
-      </Grid>
-      <Grid item xs={8}>
-        <Grid container xs={12} gap={2}>
-          <Grid container justifyContent={"space-evenly"} alignItems={"center"}>
-            {players.map(
-              (player, index) =>
-                [1, 5, 9, 12].includes(player.position) && (
-                  <Grid
-                    item
-                    key={index}
-                    alignItems={"center"}
-                    display={"flex"}
-                    direction={"column"}
-                  >
-                    <Card
-                      value={isRevealed ? String(player.vote) : "🤔"}
-                      selected={false}
-                      color={
-                        isRevealed
-                          ? theme.palette.background.paper
-                          : theme.palette.background.paper
-                      }
-                      scale={0.75}
-                    />
-                    <Typography
-                      key={index}
-                      style={{
-                        textAlign: "center",
-                        color: theme.palette.primary.contrastText,
-                        fontSize: 15,
-                        fontWeight: "bold",
-                        marginTop: "-16px",
-                      }}
-                    >
-                      {player.name}
-                    </Typography>
-                  </Grid>
-                )
-            )}
+                    Revelar
+                  </Button>
+                </BoxTable>
+              </Grid>
+              <Grid
+                container
+                justifyContent={"space-evenly"}
+                alignItems={"center"}
+              >
+                <MapPlayers
+                  idxs={tableSides[2]}
+                  players={players.filter((player: Player) =>
+                    tableSides[2].includes(player.position)
+                  )}
+                  isRevealed={isRevealed}
+                />
+              </Grid>
+            </Grid>
           </Grid>
           <Grid
             item
-            xs={12}
-            display={"flex"}
+            xs={1}
             justifyContent={"center"}
             alignItems={"center"}
+            display={"flex"}
           >
-            <BoxTable>
-              <Button
-                variant="contained"
+            <Grid item xs={12}>
+              <MapPlayers
+                idxs={tableSides[1]}
+                players={players.filter((player: Player) =>
+                  tableSides[1].includes(player.position)
+                )}
+                isRevealed={isRevealed}
+              />
+            </Grid>
+          </Grid>
+        </>
+      )}
+    </GridTable>
+  );
+};
+
+const MapPlayers = ({
+  idxs,
+  players,
+  isRevealed,
+}: {
+  idxs: Array<number>;
+  players: Array<Player>;
+  isRevealed: boolean;
+}) => {
+  return (
+    <>
+      {players.map(
+        (player, index) =>
+          idxs.includes(player.position) && (
+            <Grid
+              item
+              key={index}
+              alignItems={"center"}
+              display={"flex"}
+              direction={"column"}
+              style={{
+                marginTop: "-16px",
+              }}
+            >
+              <Card
+                value={isRevealed ? String(player.vote) : ""}
+                selected={false}
+                fontColor={
+                  !["∞", "?", "😴"].includes(String(player.vote))
+                    ? mapearCor({ valor: player.vote })
+                    : ""
+                }
+                color={
+                  isRevealed
+                    ? theme.palette.background.paper
+                    : theme.palette.background.paper
+                }
+                scale={0.75}
+              />
+              <Typography
+                key={index}
                 style={{
-                  minWidth: "40%",
-                  height: "44px",
+                  textAlign: "center",
+                  color: theme.palette.primary.contrastText,
+                  fontSize: 15,
+                  fontWeight: "bold",
+                  marginTop: "-16px",
                 }}
               >
-                Revelar
-              </Button>
-            </BoxTable>
-          </Grid>
-          <Grid container justifyContent={"space-evenly"} alignItems={"center"}>
-            {players.map(
-              (player, index) =>
-                [3, 7, 10, 11].includes(player.position) && (
-                  <Grid
-                    item
-                    key={index}
-                    alignItems={"center"}
-                    display={"flex"}
-                    direction={"column"}
-                    style={{
-                      marginTop: "-16px",
-                    }}
-                  >
-                    <Card
-                      value={isRevealed ? String(player.vote) : "🤔"}
-                      selected={false}
-                      color={
-                        isRevealed
-                          ? theme.palette.background.paper
-                          : theme.palette.background.paper
-                      }
-                      scale={0.75}
-                    />
-                    <Typography
-                      key={index}
-                      style={{
-                        textAlign: "center",
-                        color: theme.palette.primary.contrastText,
-                        fontSize: 15,
-                        fontWeight: "bold",
-                        marginTop: "-16px",
-                      }}
-                    >
-                      {player.name}
-                    </Typography>
-                  </Grid>
-                )
-            )}
-          </Grid>
-        </Grid>
-      </Grid>
-      <Grid
-        item
-        xs={1}
-        justifyContent={"center"}
-        alignItems={"center"}
-        display={"flex"}
-      >
-        <Grid item xs={12}>
-          {players.map(
-            (player, index) =>
-              [2, 6].includes(player.position) && (
-                <Grid
-                  item
-                  key={index}
-                  alignItems={"center"}
-                  display={"flex"}
-                  direction={"column"}
-                >
-                  <Card
-                    value={isRevealed ? String(player.vote) : "🤔"}
-                    selected={false}
-                    color={
-                      isRevealed
-                        ? theme.palette.background.paper
-                        : theme.palette.background.paper
-                    }
-                    scale={0.75}
-                  />
-                  <Typography
-                    key={index}
-                    style={{
-                      textAlign: "center",
-                      color: theme.palette.primary.contrastText,
-                      fontSize: 15,
-                      fontWeight: "bold",
-                      marginTop: "-16px",
-                    }}
-                  >
-                    {player.name}
-                  </Typography>
-                </Grid>
-              )
-          )}
-        </Grid>
-      </Grid>
-    </GridTable>
+                {player.name}
+              </Typography>
+            </Grid>
+          )
+      )}
+    </>
   );
 };

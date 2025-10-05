@@ -43,11 +43,9 @@ export function Session() {
     }
 
     try {
-      const response = await api.post("/sessions", {
+      const { data: session } = await api.post("/sessions", {
         name: name,
       });
-
-      const { data: session } = response.data;
 
       localStorage.setItem("sessionId", session.id);
       setPreviousSession(session.id);
@@ -65,10 +63,10 @@ export function Session() {
     <Grid container justifyContent="center" alignItems="center">
       {sessionId ? (
         <Grid container justifyContent={"center"}>
-          <Grid item xs={12} lg={6}>
+          <Grid item xs={12} lg={7}>
             <VoteTable />
           </Grid>
-          <Grid item xs={12} lg={6}>
+          <Grid item xs={12} lg={5}>
             <SessionData />
           </Grid>
 

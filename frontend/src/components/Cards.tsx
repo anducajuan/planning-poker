@@ -2,11 +2,13 @@ import { Grid, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import { theme } from "../theme/theme";
+import Logo from "./Logo";
 
 interface CardProps {
   value?: string;
   selected?: boolean;
   color: string;
+  fontColor?: string;
   onClick?: () => void;
   scale?: number;
 }
@@ -49,6 +51,7 @@ export default function Card({
   value,
   selected,
   color,
+  fontColor,
   onClick,
   scale,
 }: CardProps) {
@@ -59,10 +62,13 @@ export default function Card({
       color={color}
       theme={theme}
       onClick={onClick}
-      style={{ scale: scale || 1 }}
+      style={{
+        scale: scale || 1,
+        color: fontColor || theme.palette.primary.main,
+      }}
     >
       <Grid xs={12} style={{ height: "15%" }}>
-        <Typography style={{ fontSize: 12 }}>{value || "?"}</Typography>
+        <Typography style={{ fontSize: 12 }}>{value || ""}</Typography>
       </Grid>
       <Grid
         xs={12}
@@ -71,7 +77,9 @@ export default function Card({
         display="flex"
         justifyContent="center"
       >
-        <Typography style={{ fontSize: 40 }}>{value || "?"}</Typography>
+        <Typography style={{ fontSize: value ? 40 : 56 }}>
+          {value || <Logo fontSize={"large"} alignmentBaseline={"baseline"} />}
+        </Typography>
       </Grid>
       <Grid
         xs={12}
@@ -79,7 +87,7 @@ export default function Card({
         justifyContent={"flex-end"}
         display="flex"
       >
-        <Typography style={{ fontSize: 12 }}>{value || "?"}</Typography>
+        <Typography style={{ fontSize: 12 }}>{value || ""}</Typography>
       </Grid>
     </PokerCard>
   );
