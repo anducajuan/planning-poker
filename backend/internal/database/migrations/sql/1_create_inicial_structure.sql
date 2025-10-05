@@ -1,4 +1,4 @@
--- Extensão para UUID
+
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 
