@@ -45,7 +45,8 @@ func main() {
 	router.HandleFunc("/stories", storyService.CreateStory).Methods("POST", "OPTIONS")
 
 	router.HandleFunc("/votes", voteService.CreateVote).Methods("POST", "OPTIONS")
-	router.HandleFunc("/ws", websocket.HandleConnections)
+
+	router.HandleFunc("/ws", wsService.HandleConnections)
 
 	router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Rota não encontrada: %s %s", r.Method, r.URL.Path)

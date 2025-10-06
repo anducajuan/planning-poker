@@ -3,13 +3,17 @@ package websocket
 import (
 	"context"
 	"log"
+	"net/http"
 	"sync"
+
+	"github.com/gorilla/websocket"
 )
 
 // WebSocketService gerencia as operações de WebSocket
 type WebSocketService struct {
-	hub *Hub
-	mu  sync.RWMutex
+	hub      *Hub
+	mu       sync.RWMutex
+	upgrader websocket.Upgrader
 }
 
 // NewWebSocketService cria um novo serviço de WebSocket
@@ -17,6 +21,11 @@ func NewWebSocketService() *WebSocketService {
 	hub := NewHub()
 	service := &WebSocketService{
 		hub: hub,
+		upgrader: websocket.Upgrader{
+			CheckOrigin:     func(r *http.Request) bool { return true },
+			ReadBufferSize:  1024,
+			WriteBufferSize: 1024,
+		},
 	}
 
 	// Iniciar o hub em uma goroutine
