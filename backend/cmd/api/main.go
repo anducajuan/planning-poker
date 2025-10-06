@@ -8,7 +8,6 @@ import (
 	"flip-planning-poker/internal/services/story"
 	"flip-planning-poker/internal/services/user"
 	"flip-planning-poker/internal/services/vote"
-	"flip-planning-poker/internal/websocket"
 	"log"
 	"net/http"
 
@@ -20,10 +19,7 @@ func main() {
 
 	database.InitDB(cfg)
 
-	wsService := websocket.NewWebSocketService()
-
 	sessionService := session.NewSessionService(database.GetDB())
-	sessionService.SetWebSocketService(wsService)
 
 	userService := user.NewUserService(database.GetDB())
 	storyService := story.NewStoryService(database.GetDB())
@@ -45,8 +41,6 @@ func main() {
 	router.HandleFunc("/stories", storyService.CreateStory).Methods("POST", "OPTIONS")
 
 	router.HandleFunc("/votes", voteService.CreateVote).Methods("POST", "OPTIONS")
-
-	router.HandleFunc("/ws", wsService.HandleConnections)
 
 	router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Rota não encontrada: %s %s", r.Method, r.URL.Path)

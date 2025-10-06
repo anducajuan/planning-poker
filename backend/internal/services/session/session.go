@@ -5,7 +5,6 @@ import (
 	"flip-planning-poker/internal/model"
 	"flip-planning-poker/internal/repository"
 	"flip-planning-poker/internal/utils"
-	"flip-planning-poker/internal/websocket"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -13,9 +12,8 @@ import (
 )
 
 type SessionService struct {
-	db        *pgxpool.Pool
-	repo      *repository.SessionRepository
-	wsService websocket.Broadcaster
+	db   *pgxpool.Pool
+	repo *repository.SessionRepository
 }
 
 func NewSessionService(database *pgxpool.Pool) *SessionService {
@@ -23,10 +21,6 @@ func NewSessionService(database *pgxpool.Pool) *SessionService {
 		db:   database,
 		repo: repository.NewSessionRepository(database),
 	}
-}
-
-func (s *SessionService) SetWebSocketService(wsService websocket.Broadcaster) {
-	s.wsService = wsService
 }
 
 func (s *SessionService) GetSessions(w http.ResponseWriter, r *http.Request) {
@@ -62,14 +56,6 @@ func (s *SessionService) CreateSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if s.wsService != nil {
-		sessionData := websocket.SessionData{
-			ID:   session.ID,
-			Name: session.Name,
-		}
-		s.wsService.NotifySessionCreated(sessionData)
-	}
-
 	utils.SendSuccess(w, http.StatusCreated, session, "Sessão criada com sucesso")
 }
 
@@ -91,10 +77,6 @@ func (s *SessionService) DeleteSession(w http.ResponseWriter, r *http.Request) {
 	if rowsAffected == 0 {
 		utils.SendError(w, http.StatusNotFound, nil, "Sessão não encontrada")
 		return
-	}
-
-	if s.wsService != nil {
-		s.wsService.NotifySessionDeleted(id)
 	}
 
 	utils.SendSuccess(w, http.StatusOK, nil, "Sessão deletada com sucesso")
