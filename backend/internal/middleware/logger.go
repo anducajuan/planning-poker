@@ -76,8 +76,8 @@ func Logger(next http.Handler) http.Handler {
 
 			fullPath := fmt.Sprintf("%s?%s", r.URL.Path, r.URL.Query().Encode())
 			fmt.Printf(
-				"[%s] %s %s %d (%dms)\nReq: %s\nRes: %s\n\n",
-				time.Now().Format(time.RFC3339),
+				"%s %s %s %d (%dms)\nReq: %s\nRes: %s\n\n",
+				time.Now().Format("2006-01-02 15:04:05"),
 				r.Method,
 				fullPath,
 				lrw.statusCode,
