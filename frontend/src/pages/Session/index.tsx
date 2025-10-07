@@ -2,7 +2,7 @@ import { Button, Grid, TextField, Typography } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import Card from "../../components/Cards";
 import { mapearCor } from "../../utils/colors";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { styled } from "@mui/material/styles";
 import api from "../../services/api";
 import { toast } from "react-toastify";
@@ -11,18 +11,36 @@ import { AxiosError } from "axios";
 import { VoteTable } from "./sections/voteTable";
 import { SessionData } from "./sections/sessionData";
 
-export const SessionNameTextField = styled(TextField)(() => ({
+export interface Player {
+  name: string;
+  vote: string | number;
+  position: number;
+}
+
+const playersList: Player[] = [
+  {
+    name: "Gustavo",
+    position: 1,
+    vote: "",
+  },
+];
+
+export const SessionTextField = styled(TextField)(() => ({
   margin: "0px 15%",
   maxWidth: "360px",
 }));
 
 export function Session() {
-  const { sessionId } = useParams();
+  const { sessionId: paramsSessionId } = useParams();
 
   const cards = [1, 2, 3, 5, 8, 13, 21, 34, 55, "∞", "?", "😴"];
   const navigate = useNavigate();
 
+  const [openUserModal, setOpenUserModal] = useState<boolean>(false);
+  const [player, setPlayer] = useState<Player>();
+  const [players, setPlayers] = useState<Player[]>(playersList);
   const [name, setName] = useState("");
+  const [sessionName, setSessionName] = useState("");
   const [previousSession, setPreviousSession] = useState<string | null>(
     localStorage.getItem("sessionId")
   );
@@ -30,24 +48,55 @@ export function Session() {
     null
   );
 
+  useEffect(() => {
+    const storagePlayer: {
+      username: string | null;
+      session: string | null;
+    } = JSON.parse(localStorage.getItem("user") || "{}");
+
+    if (storagePlayer?.username && storagePlayer?.session === paramsSessionId) {
+      const newPlayer = {
+        name: storagePlayer.username,
+        vote: "",
+        position: (players.at(-1)?.position || 0) + 1,
+      };
+
+      setPlayer(newPlayer);
+      setPlayers([...players, newPlayer]);
+    } else {
+      localStorage.removeItem("user");
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleCardClick = (card: string | number) => {
     setSelectedCard(card);
   };
 
   const handleCreateSession = async () => {
-    const sessionName = name.trim();
+    const trimmedSessionName = sessionName.trim();
+    const trimmedName = name.trim();
 
-    if (sessionName.length === 0) {
+    if (trimmedSessionName.length === 0) {
       toast.error("Nome de sessão inválido.");
+      return;
+    }
+
+    if (trimmedName.length === 0) {
+      toast.error("Nome de usuário inválido.");
       return;
     }
 
     try {
       const { data: session } = await api.post("/sessions", {
-        name: name,
+        name: trimmedSessionName,
       });
 
+      await handleCreateUser(session.id);
+
       localStorage.setItem("sessionId", session.id);
+
       setPreviousSession(session.id);
       navigate(`/session/${session.id}`);
     } catch (error: unknown) {
@@ -59,14 +108,69 @@ export function Session() {
     }
   };
 
+  const handleCreateUser = async (sessionId?: string, username?: string) => {
+    const trimmedName = username?.trim() || name.trim();
+    const session = sessionId || paramsSessionId;
+
+    if (!session) {
+      toast.error("Sessão inválida.");
+      return;
+    }
+
+    if (trimmedName.length === 0) {
+      toast.error("Nome de usuário inválido.");
+      return;
+    }
+
+    try {
+      const { data: user } = await api.post("/users", {
+        session_id: session,
+        name: trimmedName,
+      });
+
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          username: user.name,
+          session: session,
+        })
+      );
+
+      const newPlayer = {
+        name: user.name,
+        vote: "",
+        position: (players.at(-1)?.position || 0) + 1,
+      };
+
+      setPlayer(newPlayer);
+      setPlayers([...players, newPlayer]);
+      setOpenUserModal(false);
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        toast.error(error?.response?.data.message);
+      } else {
+        toast.error("Ocorreu um erro ao criar usuário.");
+      }
+    }
+  };
+
   return (
     <Grid container justifyContent="center" alignItems="center">
-      {sessionId ? (
-        <Grid container justifyContent={"center"}>
-          <Grid item xs={12} lg={7}>
-            <VoteTable />
+      {paramsSessionId ? (
+        <Grid container justifyContent={"center"} alignItems={"flex-end"}>
+          <Grid item xs={12} lg={3}>
+            <SessionData />
           </Grid>
-          <Grid item xs={12} lg={5}>
+          <Grid item xs={12} lg={6}>
+            <VoteTable
+              playersList={players}
+              player={player}
+              handleCreateUser={handleCreateUser}
+              setOpenUserModal={setOpenUserModal}
+              openUserModal={openUserModal}
+            />
+          </Grid>
+          <Grid item xs={12} lg={3}>
             <SessionData />
           </Grid>
 
@@ -74,9 +178,10 @@ export function Session() {
             item
             display={"flex"}
             direction={"row"}
-            style={{ minHeight: "180px", marginTop: 24 }}
+            alignItems={"flex-end"}
+            style={{ minHeight: "180px", marginTop: "2%" }}
           >
-            <Grid container justifyContent={"center"} alignItems={"center"}>
+            <Grid container justifyContent={"center"}>
               {cards.map((card, index) => (
                 <Grid item display={"flex"} direction={"row"} key={index}>
                   <Card
@@ -113,8 +218,17 @@ export function Session() {
             </Typography>
           </Grid>
           <Grid item xs={12} justifyContent={"center"} display={"flex"}>
-            <SessionNameTextField
+            <SessionTextField
               label="Nome da sessão"
+              fullWidth
+              variant="standard"
+              value={sessionName}
+              onChange={(e) => setSessionName(e.target.value)}
+            />
+          </Grid>
+          <Grid item xs={12} justifyContent={"center"} display={"flex"}>
+            <SessionTextField
+              label="Seu nome"
               fullWidth
               variant="standard"
               value={name}

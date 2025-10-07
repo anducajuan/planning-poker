@@ -55,9 +55,9 @@ func (r *UserRepository) CreateUser(ctx context.Context, user *model.User) error
 	return err
 }
 
-func (r *UserRepository) VerifyIfNameAlreadyExists(ctx context.Context, name string) (bool, error) {
+func (r *UserRepository) VerifyIfNameAlreadyExists(ctx context.Context, name string, session string) (bool, error) {
 	var id int
-	err := r.db.QueryRow(ctx, "SELECT id FROM users WHERE name=$1", name).Scan(&id)
+	err := r.db.QueryRow(ctx, "SELECT id FROM users WHERE name=$1 AND session_id=$2", name, session).Scan(&id)
 	if err != nil {
 		return false, nil
 	}
@@ -73,7 +73,7 @@ func (r *UserRepository) ValidateUserData(ctx context.Context, user *model.User)
 		return errors.New("ID da sessão é obrigatório")
 	}
 
-	exists, err := r.VerifyIfNameAlreadyExists(ctx, user.Name)
+	exists, err := r.VerifyIfNameAlreadyExists(ctx, user.Name, user.SessionID)
 	if err != nil {
 		return err
 	}

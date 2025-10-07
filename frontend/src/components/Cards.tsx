@@ -35,9 +35,10 @@ export const PokerCard = styled(Grid)(
     justifyContent: "space-between",
     cursor: "pointer",
     transition: "all 0.2s ease 0s",
+    transform: selected ? "translateY(-16px)" : "",
     "&:hover": {
       boxShadow: "0px 6px 16px rgba(0, 0, 0, 0.2)",
-      transform: "translateY(-4px)",
+      transform: selected ? "translateY(-20px)" : "translateY(-4px)",
     },
     [theme.breakpoints.down("sm")]: {
       height: selected ? 136 : 124,
