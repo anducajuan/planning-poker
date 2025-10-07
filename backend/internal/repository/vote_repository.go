@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"flip-planning-poker/internal/model"
+	"fmt"
+	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -24,5 +26,51 @@ func (r *VoteRepository) CreateVote(ctx context.Context, v *model.Vote) error {
 	err := r.db.QueryRow(ctx, insertStatement, v.Vote, v.UserID, v.SessionID, v.StoryID, v.Status).Scan(&v.ID)
 
 	return err
+}
 
+type VoteQuery struct {
+	StoryId string
+	Status  string
+}
+
+func (r *VoteRepository) FindVotes(ctx context.Context, v *[]model.Vote, q *VoteQuery) error {
+	baseQuery := `
+	SELECT v.id, v.vote, v.user_id, v.session_id, v.story_id, v.status 
+	FROM votes v 
+	`
+	var conditions []string
+	var args []any
+
+	argIndex := 1
+
+	if q.Status != "" {
+		conditions = append(conditions, fmt.Sprintf("v.status = $%d", argIndex))
+		args = append(args, q.Status)
+		argIndex++
+	}
+	if q.StoryId != "" {
+		conditions = append(conditions, fmt.Sprintf("v.story_id = $%d", argIndex))
+		args = append(args, q.StoryId)
+		argIndex++
+	}
+
+	if len(conditions) > 0 {
+		baseQuery += " WHERE " + strings.Join(conditions, " AND ")
+	}
+
+	rows, err := r.db.Query(ctx, baseQuery, args...)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var vote model.Vote
+		if err := rows.Scan(&vote.ID, &vote.Vote, &vote.UserID, &vote.SessionID, &vote.StoryID, &vote.Status); err != nil {
+			return err
+		}
+		*v = append(*v, vote)
+	}
+
+	return rows.Err()
 }

@@ -40,3 +40,22 @@ func (s *VoteService) CreateVote(w http.ResponseWriter, r *http.Request) {
 
 	utils.SendSuccess(w, http.StatusCreated, v, "Voto criado com sucesso")
 }
+
+func (s *VoteService) FindVotes(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	storyId := r.URL.Query().Get("story_id")
+
+	query := repository.VoteQuery{
+		StoryId: storyId,
+	}
+
+	var votes []model.Vote
+
+	if err := s.repo.FindVotes(ctx, &votes, &query); err != nil {
+		utils.SendError(w, http.StatusInternalServerError, err, "Erro ao buscar votos")
+		return
+	}
+	utils.SendSuccessWithTotal(w, http.StatusOK, votes, len(votes), "Busca por votos realizada com sucesso")
+
+}
