@@ -1,98 +1,19 @@
 import { Box, Button, Grid, Typography } from "@mui/material";
 import type { Theme } from "@mui/material/styles";
 import { alpha, styled } from "@mui/material/styles";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Card from "../../../components/Cards";
 import { theme } from "../../../theme/theme";
 import { mapearCor } from "../../../utils/colors";
-
-interface Player {
-  id: number;
-  name: string;
-  vote: string | number;
-  position: number;
-}
+import type { Player } from "..";
+import Logo from "../../../components/Logo";
+import { CreateUserModal } from "./createUserModal";
 
 const tableSides = [
   [1, 5, 9, 11],
   [2, 6],
   [3, 7, 10, 12],
   [4, 8],
-];
-
-const playersLit = [
-  {
-    id: 1,
-    name: "Gustavo Akyama 1",
-    vote: 1,
-    position: 1,
-  },
-  {
-    id: 4,
-    name: "Erick 1",
-    vote: 21,
-    position: 2,
-  },
-  {
-    id: 5,
-    name: "João 1",
-    vote: 55,
-    position: 3,
-  },
-  {
-    id: 2,
-    name: "Juan 1",
-    vote: 8,
-    position: 4,
-  },
-  {
-    id: 4,
-    name: "Erick 2",
-    vote: 21,
-    position: 5,
-  },
-  {
-    id: 3,
-    name: "Breno 1",
-    vote: 55,
-    position: 6,
-  },
-  {
-    id: 2,
-    name: "Juan 2",
-    vote: 8,
-    position: 7,
-  },
-  {
-    id: 2,
-    name: "Maia 1",
-    vote: "?",
-    position: 8,
-  },
-  {
-    id: 1,
-    name: "Gustavo Akyama 2",
-    vote: 1,
-    position: 9,
-  },
-  {
-    id: 2,
-    name: "Maia 2",
-    vote: "?",
-    position: 10,
-  },
-  {
-    id: 5,
-    name: "João 2",
-    vote: 55,
-    position: 11,
-  },
-  {
-    id: 3,
-    name: "Breno 2",
-    vote: 55,
-    position: 12,
-  },
 ];
 
 export const GridTable = styled(Grid)(() => ({
@@ -118,17 +39,33 @@ export const BoxTable = styled(Box)(({ theme }: { theme: Theme }) => ({
   },
 }));
 
-export const VoteTable = () => {
+export const VoteTable = ({
+  playersList,
+  player,
+  handleCreateUser,
+  openUserModal,
+  setOpenUserModal,
+}: {
+  playersList: Player[];
+  player: Player | undefined;
+  handleCreateUser: (_?: string, name?: string) => void;
+  openUserModal: boolean;
+  setOpenUserModal: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
   const [players, setPlayers] = useState<Player[]>([]);
   const [isRevealed, setIsRevealed] = useState<boolean>(true);
 
   useEffect(() => {
-    setPlayers(playersLit);
-  }, []);
+    setPlayers(playersList);
+  }, [playersList]);
+
+  const handleReveal = () => {
+    setIsRevealed(true);
+  };
 
   return (
     <GridTable container justifyContent={"center"}>
-      {players.length === 0 ? (
+      {!players || players?.length == 0 ? (
         <Grid>
           <Typography>Carregando...</Typography>
         </Grid>
@@ -174,15 +111,22 @@ export const VoteTable = () => {
                 alignItems={"center"}
               >
                 <BoxTable>
-                  <Button
-                    variant="contained"
-                    style={{
-                      minWidth: "40%",
-                      height: "44px",
-                    }}
-                  >
-                    Revelar
-                  </Button>
+                  {player && player.position !== 1 ? (
+                    <Logo />
+                  ) : (
+                    <Button
+                      variant="contained"
+                      onClick={() =>
+                        player ? handleReveal() : setOpenUserModal(true)
+                      }
+                      style={{
+                        minWidth: "40%",
+                        height: "44px",
+                      }}
+                    >
+                      {player ? "Revelar" : "Juntar-se à mesa"}
+                    </Button>
+                  )}
                 </BoxTable>
               </Grid>
               <Grid
@@ -219,6 +163,11 @@ export const VoteTable = () => {
           </Grid>
         </>
       )}
+      <CreateUserModal
+        open={openUserModal}
+        handleClose={() => setOpenUserModal(false)}
+        handleCreateUser={handleCreateUser}
+      />
     </GridTable>
   );
 };
