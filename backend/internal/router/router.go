@@ -1,12 +1,9 @@
 package router
 
 import (
-	"errors"
-	"flip-planning-poker/internal/middleware"
-	"flip-planning-poker/internal/services/session"
-	"flip-planning-poker/internal/services/story"
-	"flip-planning-poker/internal/services/user"
-	"flip-planning-poker/internal/services/vote"
+	"flip-planning-poker/internal/handlers"
+	middleware "flip-planning-poker/internal/middlewares"
+	"flip-planning-poker/internal/services"
 	"log"
 	"net/http"
 
@@ -23,35 +20,50 @@ func (r *ApiRouter) setDB(database *pgxpool.Pool) {
 	r.db = database
 }
 
+type Handler interface {
+	RegisterRoutes(r *mux.Router)
+	GetPathPrefix() string
+}
+
+func (r *ApiRouter) registerHandlers(router *mux.Router, handlers []Handler) {
+	if len(handlers) > 0 {
+		for _, handler := range handlers {
+			pathPrefix := handler.GetPathPrefix()
+			subRouter := router.PathPrefix(pathPrefix).Subrouter()
+			handler.RegisterRoutes(subRouter)
+		}
+	}
+}
+
 func (r *ApiRouter) NewRouter(database *pgxpool.Pool) (*mux.Router, error) {
+	r.router = mux.NewRouter()
 
 	if database == nil {
-		return nil, errors.New("banco de dados não definido")
+		log.Fatal("banco de dados não definido!")
 	}
 	r.setDB(database)
-
-	sessionService := session.NewSessionService(r.db)
-	userService := user.NewUserService(r.db)
-	storyService := story.NewStoryService(r.db)
-	voteService := vote.NewVoteService(r.db)
-
-	r.router = mux.NewRouter()
 
 	r.router.Use(middleware.CORS)
 	r.router.Use(middleware.Logger)
 
-	r.router.HandleFunc("/sessions", sessionService.GetSessions).Methods("GET", "OPTIONS")
-	r.router.HandleFunc("/sessions", sessionService.CreateSession).Methods("POST", "OPTIONS")
-	r.router.HandleFunc("/sessions/{id}", sessionService.DeleteSession).Methods("DELETE", "OPTIONS")
+	// Lista com todos os Handlers que serão registrados
+	handlersList := []Handler{}
 
-	r.router.HandleFunc("/users", userService.CreateUser).Methods("POST", "OPTIONS")
-	r.router.HandleFunc("/users", userService.GetUsers).Methods("GET", "OPTIONS")
+	// Inicializa Serviços
+	sessionService := services.NewSessionService(r.db)
+	handlersList = append(handlersList, handlers.NewSessionHandler(sessionService))
 
-	r.router.HandleFunc("/stories", storyService.GetSessionStories).Methods("GET", "OPTIONS")
-	r.router.HandleFunc("/stories", storyService.CreateStory).Methods("POST", "OPTIONS")
+	userService := services.NewUserService(r.db)
+	handlersList = append(handlersList, handlers.NewUserHandler(userService))
 
-	r.router.HandleFunc("/votes", voteService.CreateVote).Methods("POST", "OPTIONS")
-	r.router.HandleFunc("/votes", voteService.FindVotes).Methods("GET", "OPTIONS")
+	storyService := services.NewStoryService(r.db)
+	handlersList = append(handlersList, handlers.NewStoryHandler(storyService))
+
+	voteService := services.NewVoteService(r.db)
+	handlersList = append(handlersList, handlers.NewVoteHandler(voteService))
+
+	// Registra Handlers
+	r.registerHandlers(r.router, handlersList)
 
 	r.router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Rota não encontrada: %s %s", r.Method, r.URL.Path)

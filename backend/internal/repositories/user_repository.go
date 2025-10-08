@@ -1,9 +1,9 @@
-package repository
+package repositories
 
 import (
 	"context"
 	"errors"
-	"flip-planning-poker/internal/model"
+	"flip-planning-poker/internal/models"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -16,7 +16,7 @@ func NewUserRepository(db *pgxpool.Pool) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (r *UserRepository) GetUsers(ctx context.Context, sessionID string) ([]model.User, error) {
+func (r *UserRepository) GetUsers(ctx context.Context, sessionID string) ([]models.User, error) {
 	selectQuery := "SELECT id, name, session_id FROM users"
 	var args []interface{}
 
@@ -31,10 +31,10 @@ func (r *UserRepository) GetUsers(ctx context.Context, sessionID string) ([]mode
 	}
 	defer rows.Close()
 
-	users := []model.User{}
+	users := []models.User{}
 
 	for rows.Next() {
-		var u model.User
+		var u models.User
 		if err := rows.Scan(&u.ID, &u.Name, &u.SessionID); err != nil {
 			return nil, err
 		}
@@ -44,7 +44,7 @@ func (r *UserRepository) GetUsers(ctx context.Context, sessionID string) ([]mode
 	return users, nil
 }
 
-func (r *UserRepository) CreateUser(ctx context.Context, user *model.User) error {
+func (r *UserRepository) CreateUser(ctx context.Context, user *models.User) error {
 	err := r.db.QueryRow(
 		ctx,
 		"INSERT INTO users (name, session_id) VALUES ($1, $2) RETURNING id",
@@ -64,7 +64,7 @@ func (r *UserRepository) VerifyIfNameAlreadyExists(ctx context.Context, name str
 	return true, nil
 }
 
-func (r *UserRepository) ValidateUserData(ctx context.Context, user *model.User) error {
+func (r *UserRepository) ValidateUserData(ctx context.Context, user *models.User) error {
 	if user.Name == "" {
 		return errors.New("nome do usuário é obrigatório")
 	}

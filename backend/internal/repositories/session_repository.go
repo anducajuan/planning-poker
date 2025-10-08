@@ -1,11 +1,16 @@
-package repository
+package repositories
 
 import (
 	"context"
 	"errors"
-	"flip-planning-poker/internal/model"
+	"flip-planning-poker/internal/models"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+var (
+	ErrInvalidID = errors.New("ID inválido")
+	ErrNotFound  = errors.New("registro não encontrado")
 )
 
 type SessionRepository struct {
@@ -16,17 +21,17 @@ func NewSessionRepository(db *pgxpool.Pool) *SessionRepository {
 	return &SessionRepository{db: db}
 }
 
-func (r *SessionRepository) GetSessions(ctx context.Context) ([]model.Session, error) {
+func (r *SessionRepository) GetAll(ctx context.Context, query any) ([]models.Session, error) {
 	rows, err := r.db.Query(ctx, "SELECT id, name FROM sessions")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	sessions := []model.Session{}
+	sessions := []models.Session{}
 
 	for rows.Next() {
-		var s model.Session
+		var s models.Session
 		if err := rows.Scan(&s.ID, &s.Name); err != nil {
 			return nil, err
 		}
@@ -36,7 +41,7 @@ func (r *SessionRepository) GetSessions(ctx context.Context) ([]model.Session, e
 	return sessions, nil
 }
 
-func (r *SessionRepository) CreateSession(ctx context.Context, session *model.Session) error {
+func (r *SessionRepository) CreateSession(ctx context.Context, session *models.Session) error {
 	err := r.db.QueryRow(
 		ctx,
 		"INSERT INTO sessions (name) VALUES ($1) RETURNING id",
@@ -64,7 +69,7 @@ func (r *SessionRepository) VerifyIfNameAlreadyExists(ctx context.Context, name 
 	return true, nil
 }
 
-func (r *SessionRepository) ValidateSessionData(ctx context.Context, session *model.Session) error {
+func (r *SessionRepository) ValidateSessionData(ctx context.Context, session *models.Session) error {
 	if session.Name == "" {
 		return errors.New("nome da sessão não pode estar vazio")
 	}

@@ -1,4 +1,4 @@
-package utils
+package response
 
 import (
 	"encoding/json"
@@ -82,5 +82,15 @@ func SendSuccessWithTotal(w http.ResponseWriter, statusCode int, data interface{
 		log.Printf("Erro ao codificar resposta de sucesso: %v", err)
 		SendError(w, http.StatusInternalServerError, err, "Erro interno do servidor")
 		return
+	}
+}
+
+func SendJSONResponse(w http.ResponseWriter, statusCode int, data any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		log.Printf("Erro ao codificar resposta de sucesso: %v", err)
+
 	}
 }

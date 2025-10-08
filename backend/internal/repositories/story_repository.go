@@ -1,9 +1,9 @@
-package repository
+package repositories
 
 import (
 	"context"
 	"errors"
-	"flip-planning-poker/internal/model"
+	"flip-planning-poker/internal/models"
 	"flip-planning-poker/internal/utils"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -17,17 +17,17 @@ func NewStoryRepository(db *pgxpool.Pool) *StoryRepository {
 	return &StoryRepository{db: db}
 }
 
-func (r *StoryRepository) FindStoryBySessionId(sessionId string) ([]model.Story, error) {
+func (r *StoryRepository) FindStoryBySessionId(sessionId string) ([]models.Story, error) {
 	rows, err := r.db.Query(context.Background(), "SELECT id, name, status, session_id from stories where session_id = $1", sessionId)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	stories := []model.Story{}
+	stories := []models.Story{}
 
 	for rows.Next() {
-		var s model.Story
+		var s models.Story
 
 		if err := rows.Scan(&s.ID, &s.Name, &s.Status, &s.SessionID); err != nil {
 			return nil, err
@@ -37,7 +37,7 @@ func (r *StoryRepository) FindStoryBySessionId(sessionId string) ([]model.Story,
 	return stories, nil
 }
 
-func (r *StoryRepository) CreateStory(story *model.Story) error {
+func (r *StoryRepository) CreateStory(story *models.Story) error {
 	validateErrs := validateStoryData(story)
 	if len(validateErrs) > 0 {
 		return validateErrs[0]
@@ -52,7 +52,7 @@ func (r *StoryRepository) CreateStory(story *model.Story) error {
 	return err
 }
 
-func validateStoryData(story *model.Story) []error {
+func validateStoryData(story *models.Story) []error {
 	var errs []error
 	possibleStatus := []string{
 		"ACTUAL",

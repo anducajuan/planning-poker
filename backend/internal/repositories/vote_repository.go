@@ -1,8 +1,8 @@
-package repository
+package repositories
 
 import (
 	"context"
-	"flip-planning-poker/internal/model"
+	"flip-planning-poker/internal/models"
 	"fmt"
 	"strings"
 
@@ -17,7 +17,7 @@ func NewVoteRepository(db *pgxpool.Pool) *VoteRepository {
 	return &VoteRepository{db: db}
 }
 
-func (r *VoteRepository) CreateVote(ctx context.Context, v *model.Vote) error {
+func (r *VoteRepository) CreateVote(ctx context.Context, v *models.Vote) error {
 	if v.Status == "" {
 		v.Status = "HIDDEN"
 	}
@@ -33,7 +33,7 @@ type VoteQuery struct {
 	Status  string
 }
 
-func (r *VoteRepository) FindVotes(ctx context.Context, v *[]model.Vote, q *VoteQuery) error {
+func (r *VoteRepository) FindVotes(ctx context.Context, v *[]models.Vote, q *VoteQuery) error {
 	baseQuery := `
 	SELECT v.id, v.vote, v.user_id, v.session_id, v.story_id, v.status 
 	FROM votes v 
@@ -65,7 +65,7 @@ func (r *VoteRepository) FindVotes(ctx context.Context, v *[]model.Vote, q *Vote
 	defer rows.Close()
 
 	for rows.Next() {
-		var vote model.Vote
+		var vote models.Vote
 		if err := rows.Scan(&vote.ID, &vote.Vote, &vote.UserID, &vote.SessionID, &vote.StoryID, &vote.Status); err != nil {
 			return err
 		}
