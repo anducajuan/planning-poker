@@ -46,21 +46,20 @@ func (r *ApiRouter) NewRouter(database *pgxpool.Pool) (*mux.Router, error) {
 	r.router.Use(middleware.CORS)
 	r.router.Use(middleware.Logger)
 
-	// Lista com todos os Handlers que serão registrados
-	handlersList := []Handler{}
-
 	// Inicializa Serviços
 	sessionService := services.NewSessionService(r.db)
-	handlersList = append(handlersList, handlers.NewSessionHandler(sessionService))
-
 	userService := services.NewUserService(r.db)
-	handlersList = append(handlersList, handlers.NewUserHandler(userService))
-
 	storyService := services.NewStoryService(r.db)
-	handlersList = append(handlersList, handlers.NewStoryHandler(storyService))
-
 	voteService := services.NewVoteService(r.db)
-	handlersList = append(handlersList, handlers.NewVoteHandler(voteService))
+
+	// Lista com todos os Handlers que serão registrados
+	handlersList := []Handler{
+		handlers.NewSessionHandler(sessionService),
+		handlers.NewUserHandler(userService),
+		handlers.NewUserHandler(userService),
+		handlers.NewStoryHandler(storyService),
+		handlers.NewVoteHandler(voteService),
+	}
 
 	// Registra Handlers
 	r.registerHandlers(r.router, handlersList)
