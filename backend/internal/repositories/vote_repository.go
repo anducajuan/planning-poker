@@ -74,3 +74,52 @@ func (r *VoteRepository) FindVotes(ctx context.Context, v *[]models.Vote, q *Vot
 
 	return rows.Err()
 }
+
+type VotePatch struct {
+	Vote   *int    `json:"vote,omitempty"`
+	Status *string `json:"status,omitempty"`
+}
+
+func (r *VoteRepository) UpdateVote(ctx context.Context, id int, patch *VotePatch) error {
+	var setParts []string
+	var args []any
+	argIndex := 1
+
+	if patch.Vote != nil {
+		setParts = append(setParts, fmt.Sprintf("vote = $%d", argIndex))
+		args = append(args, *patch.Vote)
+		argIndex++
+	}
+
+	if patch.Status != nil {
+		setParts = append(setParts, fmt.Sprintf("status = $%d", argIndex))
+		args = append(args, *patch.Status)
+		argIndex++
+	}
+
+	if len(setParts) == 0 {
+		return fmt.Errorf("nenhum campo fornecido para atualização")
+	}
+
+	updateStatement := fmt.Sprintf("UPDATE votes SET %s WHERE id = $%d",
+		strings.Join(setParts, ", "), argIndex)
+	args = append(args, id)
+
+	_, err := r.db.Exec(ctx, updateStatement, args...)
+	return err
+}
+
+func (r *VoteRepository) GetVoteByID(ctx context.Context, id int) (*models.Vote, error) {
+	query := "SELECT id, vote, user_id, session_id, story_id, status FROM votes WHERE id = $1"
+
+	var vote models.Vote
+	err := r.db.QueryRow(ctx, query, id).Scan(
+		&vote.ID, &vote.Vote, &vote.UserID, &vote.SessionID, &vote.StoryID, &vote.Status,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &vote, nil
+}

@@ -20,7 +20,7 @@ func NewVoteService(database *pgxpool.Pool) *VoteService {
 	}
 }
 
-func (s *VoteService) CreateVote(ctx context.Context, vote *models.Vote) (*models.Vote, error) {
+func (s *VoteService) Create(ctx context.Context, vote *models.Vote) (*models.Vote, error) {
 	if err := s.repo.CreateVote(ctx, vote); err != nil {
 		return nil, err
 	}
@@ -28,7 +28,7 @@ func (s *VoteService) CreateVote(ctx context.Context, vote *models.Vote) (*model
 	return vote, nil
 }
 
-func (s *VoteService) ListVotes(ctx context.Context, storyId string) ([]models.Vote, error) {
+func (s *VoteService) List(ctx context.Context, storyId string) ([]models.Vote, error) {
 	query := repositories.VoteQuery{
 		StoryId: storyId,
 	}
@@ -39,4 +39,12 @@ func (s *VoteService) ListVotes(ctx context.Context, storyId string) ([]models.V
 	}
 
 	return votes, nil
+}
+
+func (s *VoteService) Patch(ctx context.Context, id int, patch *repositories.VotePatch) error {
+	return s.repo.UpdateVote(ctx, id, patch)
+}
+
+func (s *VoteService) Get(ctx context.Context, id int) (*models.Vote, error) {
+	return s.repo.GetVoteByID(ctx, id)
 }
