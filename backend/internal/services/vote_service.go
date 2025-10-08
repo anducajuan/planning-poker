@@ -21,6 +21,10 @@ func NewVoteService(database *pgxpool.Pool) *VoteService {
 }
 
 func (s *VoteService) Create(ctx context.Context, vote *models.Vote) (*models.Vote, error) {
+	if vote.Status == "" {
+		vote.Status = "HIDDEN"
+	}
+
 	if err := s.repo.CreateVote(ctx, vote); err != nil {
 		return nil, err
 	}
