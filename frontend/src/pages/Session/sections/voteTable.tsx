@@ -1,13 +1,13 @@
-import { Box, Button, Grid, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, Grid, Typography } from "@mui/material";
 import type { Theme } from "@mui/material/styles";
 import { alpha, styled } from "@mui/material/styles";
 import React, { useEffect, useState } from "react";
 import Card from "../../../components/Cards";
 import { theme } from "../../../theme/theme";
 import { mapearCor } from "../../../utils/colors";
-import type { Player } from "..";
+import type { Player, Story } from "..";
 import Logo from "../../../components/Logo";
-import { CreateUserModal } from "./createUserModal";
+import { CreateModal } from "./sessionModal";
 
 const tableSides = [
   [1, 5, 9, 11],
@@ -45,12 +45,20 @@ export const VoteTable = ({
   handleCreateUser,
   openUserModal,
   setOpenUserModal,
+  story,
+  handleCreateStory,
+  openStoryModal,
+  setOpenStoryModal,
 }: {
   playersList: Player[];
   player: Player | undefined;
-  handleCreateUser: (_?: string, name?: string) => void;
+  handleCreateUser: (name: string) => void;
   openUserModal: boolean;
   setOpenUserModal: React.Dispatch<React.SetStateAction<boolean>>;
+  story: Story | undefined;
+  handleCreateStory: (storyName: string) => void;
+  openStoryModal: boolean;
+  setOpenStoryModal: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const [players, setPlayers] = useState<Player[]>([]);
   const [isRevealed, setIsRevealed] = useState<boolean>(true);
@@ -67,7 +75,7 @@ export const VoteTable = ({
     <GridTable container justifyContent={"center"}>
       {!players || players?.length == 0 ? (
         <Grid>
-          <Typography>Carregando...</Typography>
+          <CircularProgress />
         </Grid>
       ) : (
         <>
@@ -111,20 +119,35 @@ export const VoteTable = ({
                 alignItems={"center"}
               >
                 <BoxTable>
-                  {player && player.position !== 1 ? (
-                    <Logo />
+                  {!player || player.position !== 1 ? (
+                    <>
+                      {!player ? (
+                        <Button
+                          variant="contained"
+                          onClick={() => setOpenUserModal(true)}
+                          style={{
+                            minWidth: "40%",
+                            height: "44px",
+                          }}
+                        >
+                          Juntar-se à mesa
+                        </Button>
+                      ) : (
+                        <Logo />
+                      )}
+                    </>
                   ) : (
                     <Button
                       variant="contained"
                       onClick={() =>
-                        player ? handleReveal() : setOpenUserModal(true)
+                        story?.id ? handleReveal() : setOpenStoryModal(true)
                       }
                       style={{
                         minWidth: "40%",
                         height: "44px",
                       }}
                     >
-                      {player ? "Revelar" : "Juntar-se à mesa"}
+                      {story?.id ? "Revelar" : "Criar votação"}
                     </Button>
                   )}
                 </BoxTable>
@@ -163,10 +186,13 @@ export const VoteTable = ({
           </Grid>
         </>
       )}
-      <CreateUserModal
-        open={openUserModal}
-        handleClose={() => setOpenUserModal(false)}
-        handleCreateUser={handleCreateUser}
+      <CreateModal
+        open={openUserModal || openStoryModal}
+        handleClose={() =>
+          openStoryModal ? setOpenStoryModal(false) : setOpenUserModal(false)
+        }
+        handleCreate={openStoryModal ? handleCreateStory : handleCreateUser}
+        type={openStoryModal ? "story" : "player"}
       />
     </GridTable>
   );

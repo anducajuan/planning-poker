@@ -17,13 +17,10 @@ export interface Player {
   position: number;
 }
 
-const playersList: Player[] = [
-  {
-    name: "Gustavo",
-    position: 1,
-    vote: "",
-  },
-];
+export interface Story {
+  id: number | null;
+  name?: string;
+}
 
 export const SessionTextField = styled(TextField)(() => ({
   margin: "0px 15%",
@@ -37,10 +34,15 @@ export function Session() {
   const navigate = useNavigate();
 
   const [openUserModal, setOpenUserModal] = useState<boolean>(false);
+  const [openStoryModal, setOpenStoryModal] = useState<boolean>(false);
   const [player, setPlayer] = useState<Player>();
-  const [players, setPlayers] = useState<Player[]>(playersList);
+  const [players, setPlayers] = useState<Player[]>([]);
   const [name, setName] = useState("");
   const [sessionName, setSessionName] = useState("");
+  const [story, setStory] = useState<Story>({
+    id: null,
+    name: "",
+  });
   const [previousSession, setPreviousSession] = useState<string | null>(
     localStorage.getItem("sessionId")
   );
@@ -49,26 +51,51 @@ export function Session() {
   );
 
   useEffect(() => {
-    const storagePlayer: {
-      username: string | null;
-      session: string | null;
-    } = JSON.parse(localStorage.getItem("user") || "{}");
+    const loadPlayers = async () => {
+      try {
+        const { data: playersList } = await api.get(
+          `users?session_id=${paramsSessionId}`
+        );
 
-    if (storagePlayer?.username && storagePlayer?.session === paramsSessionId) {
-      const newPlayer = {
-        name: storagePlayer.username,
-        vote: "",
-        position: (players.at(-1)?.position || 0) + 1,
-      };
+        const formattedPlayersList = playersList.map(
+          (player: Player, index: number) => ({
+            name: player.name,
+            position: index + 1,
+            vote: "",
+          })
+        );
 
-      setPlayer(newPlayer);
-      setPlayers([...players, newPlayer]);
-    } else {
-      localStorage.removeItem("user");
-    }
+        setPlayers(formattedPlayersList);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+        const storagePlayer = JSON.parse(localStorage.getItem("user") || "{}");
+
+        if (
+          storagePlayer?.username &&
+          storagePlayer?.session === paramsSessionId
+        ) {
+          const currentPlayer = formattedPlayersList.find(
+            (p: Player) => p.name === storagePlayer.username
+          );
+
+          if (currentPlayer) {
+            setPlayer(currentPlayer);
+          }
+        } else {
+          if (paramsSessionId) {
+            localStorage.removeItem("user");
+          }
+        }
+      } catch (error: unknown) {
+        if (error instanceof AxiosError) {
+          toast.error(error?.response?.data.message);
+        } else {
+          toast.error("Ocorreu um erro ao criar a sessão.");
+        }
+      }
+    };
+
+    loadPlayers();
+  }, [paramsSessionId]);
 
   const handleCardClick = (card: string | number) => {
     setSelectedCard(card);
@@ -108,9 +135,9 @@ export function Session() {
     }
   };
 
-  const handleCreateUser = async (sessionId?: string, username?: string) => {
+  const handleCreateUser = async (username: string) => {
     const trimmedName = username?.trim() || name.trim();
-    const session = sessionId || paramsSessionId;
+    const session = paramsSessionId;
 
     if (!session) {
       toast.error("Sessão inválida.");
@@ -154,6 +181,41 @@ export function Session() {
     }
   };
 
+  const handleCreateStory = async (storyName: string) => {
+    const trimmedStoryName = storyName.trim();
+    const session = paramsSessionId;
+
+    if (!session) {
+      toast.error("Sessão inválida.");
+      return;
+    }
+
+    if (trimmedStoryName.length === 0) {
+      toast.error("Nome de votação inválido.");
+      return;
+    }
+
+    try {
+      const { data: storyData } = await api.post("/stories", {
+        name: trimmedStoryName,
+        session_id: session,
+        status: "ACTUAL",
+      });
+
+      setStory({
+        id: storyData.id,
+        name: storyData.name,
+      });
+      setOpenStoryModal(false);
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        toast.error(error?.response?.data.message);
+      } else {
+        toast.error("Ocorreu um erro ao criar a votação.");
+      }
+    }
+  };
+
   return (
     <Grid container justifyContent="center" alignItems="center">
       {paramsSessionId ? (
@@ -168,6 +230,10 @@ export function Session() {
               handleCreateUser={handleCreateUser}
               setOpenUserModal={setOpenUserModal}
               openUserModal={openUserModal}
+              story={story}
+              handleCreateStory={handleCreateStory}
+              setOpenStoryModal={setOpenStoryModal}
+              openStoryModal={openStoryModal}
             />
           </Grid>
           <Grid item xs={12} lg={3}>

@@ -2,14 +2,16 @@ import { Box, Button, Grid, Modal, TextField, Typography } from "@mui/material";
 import { theme } from "../../../theme/theme";
 import { useState } from "react";
 
-export const CreateUserModal = ({
+export const CreateModal = ({
   open,
   handleClose,
-  handleCreateUser,
+  handleCreate,
+  type,
 }: {
   open: boolean;
   handleClose: () => void;
-  handleCreateUser: (_?: string, name?: string) => void;
+  handleCreate: (name: string) => void;
+  type: string;
 }) => {
   const [name, setName] = useState<string>("");
 
@@ -40,7 +42,7 @@ export const CreateUserModal = ({
             fontSize: 24,
           }}
         >
-          Juntar-se à mesa
+          {type === "story" ? "Nova votação" : "Juntar-se à mesa"}
         </Typography>
         <Grid
           item
@@ -50,7 +52,7 @@ export const CreateUserModal = ({
           style={{ margin: "16px 0px 16px" }}
         >
           <TextField
-            label="Seu nome"
+            label={type === "story" ? "Votação" : "Seu nome"}
             fullWidth
             variant="standard"
             value={name}
@@ -63,7 +65,7 @@ export const CreateUserModal = ({
           </Button>
           <Button
             variant="contained"
-            onClick={() => handleCreateUser("", name)}
+            onClick={() => handleCreate(name)}
             sx={{ mt: 2 }}
           >
             Salvar
