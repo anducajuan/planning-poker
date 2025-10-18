@@ -4,6 +4,7 @@ import (
 	"flip-planning-poker/internal/handlers"
 	middleware "flip-planning-poker/internal/middlewares"
 	"flip-planning-poker/internal/services"
+	"flip-planning-poker/internal/websocket"
 	"log"
 	"net/http"
 
@@ -42,6 +43,11 @@ func (r *ApiRouter) NewRouter(database *pgxpool.Pool) (*mux.Router, error) {
 		log.Fatal("banco de dados não definido!")
 	}
 	r.setDB(database)
+	wsRouter := r.router.NewRoute().Subrouter()
+	wsService := websocket.NewWebsocketService()
+
+	wsRouter.HandleFunc("/ws", wsService.WsHandler)
+	go wsService.HandleMessages()
 
 	r.router.Use(middleware.CORS)
 	r.router.Use(middleware.Logger)

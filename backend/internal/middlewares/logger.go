@@ -1,19 +1,19 @@
 package middleware
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"time"
 )
 
-// Configuração para habilitar formato dev ou prod
 var LogMode = os.Getenv("APP_ENV") // "dev" ou "prod"
 
-// responseWriter customizado para capturar body e status
 type loggingResponseWriter struct {
 	http.ResponseWriter
 	statusCode int
@@ -30,32 +30,52 @@ func (lrw *loggingResponseWriter) WriteHeader(code int) {
 }
 
 func (lrw *loggingResponseWriter) Write(b []byte) (int, error) {
-	lrw.body.Write(b) // salva a resposta
+	lrw.body.Write(b)
 	return lrw.ResponseWriter.Write(b)
+}
+
+func (lrw *loggingResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	if h, ok := lrw.ResponseWriter.(http.Hijacker); ok {
+		return h.Hijack()
+	}
+	return nil, nil, fmt.Errorf("hijacker not supported")
+}
+
+func (lrw *loggingResponseWriter) Flush() {
+	if f, ok := lrw.ResponseWriter.(http.Flusher); ok {
+		f.Flush()
+	}
+}
+
+func (lrw *loggingResponseWriter) Push(target string, opts *http.PushOptions) error {
+	if p, ok := lrw.ResponseWriter.(http.Pusher); ok {
+		return p.Push(target, opts)
+	}
+	return http.ErrNotSupported
 }
 
 func Logger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
-		// Lendo o request body
 		var reqBody []byte
 		if r.Body != nil {
 			reqBody, _ = io.ReadAll(r.Body)
 		}
-		// restaurando o body para que o próximo handler use
+
 		r.Body = io.NopCloser(bytes.NewBuffer(reqBody))
 
-		// Response Writer customizado
+		if isWebSocketRequest(r) {
+			next.ServeHTTP(w, r)
+			return
+		}
+
 		lrw := newLoggingResponseWriter(w)
 
-		// Executa a rota
 		next.ServeHTTP(lrw, r)
 
-		// Tempo de execução
 		latency := time.Since(start)
 
-		// Dados para log
 		logData := map[string]interface{}{
 			"method":      r.Method,
 			"path":        r.URL.Path,
@@ -67,13 +87,11 @@ func Logger(next http.Handler) http.Handler {
 			"remote_addr": r.RemoteAddr,
 		}
 
-		// Impressão formatada
 		if LogMode == "prod" {
 			// JSON
 			j, _ := json.Marshal(logData)
 			fmt.Println(string(j))
 		} else {
-
 			fullPath := fmt.Sprintf("%s?%s", r.URL.Path, r.URL.Query().Encode())
 			fmt.Printf(
 				"%s %s %s %d (%dms)\nReq: %s\nRes: %s\n\n",
@@ -87,4 +105,16 @@ func Logger(next http.Handler) http.Handler {
 			)
 		}
 	})
+}
+
+func isWebSocketRequest(r *http.Request) bool {
+	conn := r.Header.Get("Connection")
+	upg := r.Header.Get("Upgrade")
+	if conn == "upgrade" || conn == "Upgrade" {
+		return true
+	}
+	if upg == "websocket" || upg == "Websocket" || upg == "WebSocket" {
+		return true
+	}
+	return false
 }
