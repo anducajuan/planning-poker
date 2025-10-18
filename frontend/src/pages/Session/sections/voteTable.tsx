@@ -23,7 +23,7 @@ export const GridTable = styled(Grid)(() => ({
 }));
 
 export const BoxTable = styled(Box)(({ theme }: { theme: Theme }) => ({
-  width: "80%",
+  width: "40%",
   height: "236px",
   backgroundColor: alpha(theme.palette.primary.dark, 0.3),
   opacity: 0.7,
