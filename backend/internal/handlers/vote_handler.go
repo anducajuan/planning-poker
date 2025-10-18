@@ -34,7 +34,17 @@ func (h *VoteHandler) RegisterRoutes(r *mux.Router) {
 
 func (h *VoteHandler) ListVotes(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	storyId := r.URL.Query().Get("story_id")
+	var storyId int
+	var err error
+
+	storyIdParam := r.URL.Query().Get("story_id")
+
+	if storyIdParam != "" {
+		storyId, err = strconv.Atoi(storyIdParam)
+		if err != nil {
+			response.SendError(w, http.StatusBadRequest, err, "StoryId não é inteiro")
+		}
+	}
 
 	votes, err := h.service.List(ctx, storyId)
 	if err != nil {

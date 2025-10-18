@@ -32,7 +32,22 @@ func (s *VoteService) Create(ctx context.Context, vote *models.Vote) (*models.Vo
 	return vote, nil
 }
 
-func (s *VoteService) List(ctx context.Context, storyId string) ([]models.Vote, error) {
+func (s *VoteService) verifyExistingVoteForStory(ctx context.Context, userId int, storyId int) (bool, error) {
+
+	var votes []models.Vote
+	if err := s.repo.FindVotes(ctx, &votes, &repositories.VoteQuery{
+		UserId:  userId,
+		StoryId: storyId,
+	}); err != nil {
+		return false, err
+	}
+	if len(votes) > 0 {
+		return true, nil
+	}
+	return false, nil
+}
+
+func (s *VoteService) List(ctx context.Context, storyId int) ([]models.Vote, error) {
 	query := repositories.VoteQuery{
 		StoryId: storyId,
 	}

@@ -26,7 +26,8 @@ func (r *VoteRepository) CreateVote(ctx context.Context, v *models.Vote) error {
 }
 
 type VoteQuery struct {
-	StoryId string
+	StoryId int
+	UserId  int
 	Status  string
 }
 
@@ -45,7 +46,7 @@ func (r *VoteRepository) FindVotes(ctx context.Context, v *[]models.Vote, q *Vot
 		args = append(args, q.Status)
 		argIndex++
 	}
-	if q.StoryId != "" {
+	if q.StoryId != 0 {
 		conditions = append(conditions, fmt.Sprintf("v.story_id = $%d", argIndex))
 		args = append(args, q.StoryId)
 		argIndex++
@@ -73,7 +74,7 @@ func (r *VoteRepository) FindVotes(ctx context.Context, v *[]models.Vote, q *Vot
 }
 
 type VotePatch struct {
-	Vote   *int    `json:"vote,omitempty"`
+	Vote   *string `json:"vote,omitempty"`
 	Status *string `json:"status,omitempty"`
 }
 
