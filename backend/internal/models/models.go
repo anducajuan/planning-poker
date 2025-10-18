@@ -20,7 +20,7 @@ type Story struct {
 
 type Vote struct {
 	ID        int    `json:"id"`         // SERIAL
-	Vote      int    `json:"vote"`       // valor do voto
+	Vote      string `json:"vote"`       // valor do voto
 	UserID    int    `json:"user_id"`    // FK -> users.id
 	SessionID string `json:"session_id"` // FK -> sessions.id
 	StoryID   int    `json:"story_id"`   // FK -> stories.id
