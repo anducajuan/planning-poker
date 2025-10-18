@@ -12,6 +12,7 @@ import { VoteTable } from "./sections/voteTable";
 import { SessionData } from "./sections/sessionData";
 
 export interface Player {
+  id: number;
   name: string;
   vote: string | number;
   position: number;
@@ -20,6 +21,14 @@ export interface Player {
 export interface Story {
   id: number | null;
   name?: string;
+  status?: "ACTUAL" | "OLD";
+}
+
+export interface Vote {
+  id: number | null;
+  vote: string | number;
+  user_id?: number;
+  story_id?: number;
 }
 
 export const SessionTextField = styled(TextField)(() => ({
@@ -39,6 +48,7 @@ export function Session() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [name, setName] = useState("");
   const [sessionName, setSessionName] = useState("");
+  const [vote, setVote] = useState<Vote>({ id: null, vote: "" });
   const [story, setStory] = useState<Story>({
     id: null,
     name: "",
@@ -59,6 +69,7 @@ export function Session() {
 
         const formattedPlayersList = playersList.map(
           (player: Player, index: number) => ({
+            id: player.id,
             name: player.name,
             position: index + 1,
             vote: "",
@@ -79,6 +90,7 @@ export function Session() {
 
           if (currentPlayer) {
             setPlayer(currentPlayer);
+            loadStory(currentPlayer);
           }
         } else {
           if (paramsSessionId) {
@@ -94,11 +106,78 @@ export function Session() {
       }
     };
 
+    const loadStory = async (player: Player) => {
+      try {
+        const { data: storyData } = await api.get(
+          `stories?session_id=${paramsSessionId}`
+        );
+
+        const actualStory = storyData.find(
+          (story: Story) => story.status === "ACTUAL"
+        );
+
+        if (actualStory) {
+          setStory({
+            id: actualStory.id,
+            name: actualStory.name,
+          });
+          loadVotes(actualStory.id, player.id);
+        }
+      } catch (error: unknown) {
+        if (error instanceof AxiosError) {
+          toast.error(error?.response?.data.message);
+        } else {
+          toast.error("Ocorreu um erro ao carregar a votação.");
+        }
+      }
+    };
+
+    const loadVotes = async (storyId: number, playerId: number) => {
+      try {
+        if (storyId) {
+          const { data: votesData } = await api.get(
+            `votes?story_id=${storyId}`
+          );
+
+          const userVote = votesData.find(
+            (vote: Vote) => vote.user_id === playerId
+          );
+
+          if (userVote) {
+            setVote(userVote);
+            setSelectedCard(userVote.vote);
+          }
+        }
+      } catch (error: unknown) {
+        if (error instanceof AxiosError) {
+          toast.error(error?.response?.data.message);
+        } else {
+          toast.error("Ocorreu um erro ao carregar o voto.");
+        }
+      }
+    };
+
     loadPlayers();
   }, [paramsSessionId]);
 
-  const handleCardClick = (card: string | number) => {
-    setSelectedCard(card);
+  const handleCardClick = async (card: string | number) => {
+    if (card !== selectedCard && player && paramsSessionId && story) {
+      if (!vote?.id) {
+        const { data: newVote } = await api.post("/votes", {
+          vote: card.toString(),
+          session_id: paramsSessionId,
+          user_id: player.id,
+          story_id: story.id,
+        });
+        setVote(newVote);
+      } else {
+        const { data: updatedVote } = await api.patch(`/votes/${vote.id}`, {
+          vote: card.toString(),
+        });
+        setVote(updatedVote);
+      }
+      setSelectedCard(card);
+    }
   };
 
   const handleCreateSession = async () => {
@@ -120,7 +199,9 @@ export function Session() {
         name: trimmedSessionName,
       });
 
-      await handleCreateUser(session.id);
+      const player = await handleCreateUser(name, session.id);
+
+      if (!player) return;
 
       localStorage.setItem("sessionId", session.id);
 
@@ -135,9 +216,9 @@ export function Session() {
     }
   };
 
-  const handleCreateUser = async (username: string) => {
-    const trimmedName = username?.trim() || name.trim();
-    const session = paramsSessionId;
+  const handleCreateUser = async (username: string, sessionId?: string) => {
+    const trimmedName = username?.trim();
+    const session = sessionId || paramsSessionId;
 
     if (!session) {
       toast.error("Sessão inválida.");
@@ -164,6 +245,7 @@ export function Session() {
       );
 
       const newPlayer = {
+        id: user.id,
         name: user.name,
         vote: "",
         position: (players.at(-1)?.position || 0) + 1,
@@ -172,6 +254,8 @@ export function Session() {
       setPlayer(newPlayer);
       setPlayers([...players, newPlayer]);
       setOpenUserModal(false);
+
+      return newPlayer;
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
         toast.error(error?.response?.data.message);
@@ -231,6 +315,7 @@ export function Session() {
               setOpenUserModal={setOpenUserModal}
               openUserModal={openUserModal}
               story={story}
+              setStory={setStory}
               handleCreateStory={handleCreateStory}
               setOpenStoryModal={setOpenStoryModal}
               openStoryModal={openStoryModal}

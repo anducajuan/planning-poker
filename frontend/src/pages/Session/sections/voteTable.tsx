@@ -46,6 +46,7 @@ export const VoteTable = ({
   openUserModal,
   setOpenUserModal,
   story,
+  setStory,
   handleCreateStory,
   openStoryModal,
   setOpenStoryModal,
@@ -56,6 +57,7 @@ export const VoteTable = ({
   openUserModal: boolean;
   setOpenUserModal: React.Dispatch<React.SetStateAction<boolean>>;
   story: Story | undefined;
+  setStory: React.Dispatch<React.SetStateAction<Story>>;
   handleCreateStory: (storyName: string) => void;
   openStoryModal: boolean;
   setOpenStoryModal: React.Dispatch<React.SetStateAction<boolean>>;
@@ -69,6 +71,7 @@ export const VoteTable = ({
 
   const handleReveal = () => {
     setIsRevealed(true);
+    setStory({ id: null, name: "" });
   };
 
   return (
