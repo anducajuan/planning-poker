@@ -121,3 +121,12 @@ func (r *VoteRepository) GetVoteByID(ctx context.Context, id int) (*models.Vote,
 
 	return &vote, nil
 }
+
+func (r *VoteRepository) UpdateStatusPerStory(ctx context.Context, storyId int) error {
+	updateQuery := fmt.Sprintf(`UPDATE votes set status = "REVEALED" WHERE story_id = %d ;`, storyId)
+	_, err := r.db.Exec(ctx, updateQuery)
+	if err != nil {
+		return err
+	}
+	return nil
+}

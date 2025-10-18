@@ -6,6 +6,7 @@ import (
 	"flip-planning-poker/internal/services"
 	"flip-planning-poker/internal/utils/response"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -27,6 +28,26 @@ func (h *StoryHandler) GetPathPrefix() string {
 func (h *StoryHandler) RegisterRoutes(r *mux.Router) {
 	r.HandleFunc("", h.ListStories).Methods("GET", "OPTIONS")
 	r.HandleFunc("", h.CreateStory).Methods("POST", "OPTIONS")
+	r.HandleFunc("/reveal", h.RevealStory).Methods("POST", "OPTIONS")
+}
+
+func (h *StoryHandler) RevealStory(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	var storyId int
+	var err error
+	paramSessionId := r.URL.Query().Get("session_id")
+	storyId, err = strconv.Atoi(paramSessionId)
+	if err != nil {
+		response.SendError(w, http.StatusBadRequest, err, "Necessário informar um id de sessão")
+		return
+	}
+	err = h.service.RevealStory(ctx, storyId)
+	if err != nil {
+		response.SendError(w, http.StatusInternalServerError, err, "Erro ao revelar story")
+		return
+	}
+	response.SendSuccess(w, http.StatusCreated, nil, "Story revelada com sucesso")
+
 }
 
 func (h *StoryHandler) ListStories(w http.ResponseWriter, r *http.Request) {

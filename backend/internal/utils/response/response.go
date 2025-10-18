@@ -55,7 +55,6 @@ func SendError(w http.ResponseWriter, statusCode int, err error, message string)
 	}
 }
 
-// SendSuccess envia uma resposta de sucesso padronizada
 func SendSuccess(w http.ResponseWriter, statusCode int, data any, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
@@ -67,7 +66,6 @@ func SendSuccess(w http.ResponseWriter, statusCode int, data any, message string
 	}
 }
 
-// SendSuccessWithTotal envia uma resposta de sucesso com total de itens
 func SendSuccessWithTotal(w http.ResponseWriter, statusCode int, data interface{}, total int, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)

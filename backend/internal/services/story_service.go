@@ -39,3 +39,12 @@ func (s *StoryService) CreateStory(ctx context.Context, story *models.Story) (*m
 
 	return story, nil
 }
+
+func (s *StoryService) RevealStory(ctx context.Context, storyId int) error {
+	vote_repository := repositories.VoteRepository{}
+	if err := vote_repository.UpdateStatusPerStory(ctx, storyId); err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -18,11 +18,27 @@ type Story struct {
 	SessionID string `json:"session_id"` // FK -> sessions.id
 }
 
+type VoteStatus string
+
+const (
+	RevealedVote VoteStatus = "REVEALED"
+	HiddenVote   VoteStatus = "HIDDEN"
+)
+
+func (v VoteStatus) IsValid() bool {
+	switch v {
+	case RevealedVote, HiddenVote:
+		return true
+	default:
+		return false
+	}
+}
+
 type Vote struct {
-	ID        int    `json:"id"`         // SERIAL
-	Vote      string `json:"vote"`       // valor do voto
-	UserID    int    `json:"user_id"`    // FK -> users.id
-	SessionID string `json:"session_id"` // FK -> sessions.id
-	StoryID   int    `json:"story_id"`   // FK -> stories.id
-	Status    string `json:"status"`
+	ID        int        `json:"id"`         // SERIAL
+	Vote      string     `json:"vote"`       // valor do voto
+	UserID    int        `json:"user_id"`    // FK -> users.id
+	SessionID string     `json:"session_id"` // FK -> sessions.id
+	StoryID   int        `json:"story_id"`   // FK -> stories.id
+	Status    VoteStatus `json:"status"`
 }

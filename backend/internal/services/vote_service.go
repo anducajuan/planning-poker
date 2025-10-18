@@ -25,6 +25,10 @@ func (s *VoteService) Create(ctx context.Context, vote *models.Vote) (*models.Vo
 	if vote.Status == "" {
 		vote.Status = "HIDDEN"
 	}
+	if !vote.Status.IsValid() {
+		return nil, fmt.Errorf("status inválido: %s", vote.Status)
+	}
+
 	existUserVote, err := s.verifyExistingVoteForStory(ctx, vote.UserID, vote.StoryID)
 	if err != nil {
 		return nil, err
