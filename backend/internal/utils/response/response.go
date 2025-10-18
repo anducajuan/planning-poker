@@ -58,11 +58,12 @@ func SendError(w http.ResponseWriter, statusCode int, err error, message string)
 func SendSuccess(w http.ResponseWriter, statusCode int, data any, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
-
-	if err := json.NewEncoder(w).Encode(data); err != nil {
-		log.Printf("Erro ao codificar resposta de sucesso: %v", err)
-		SendError(w, http.StatusInternalServerError, err, "Erro interno do servidor")
-		return
+	if data != nil {
+		if err := json.NewEncoder(w).Encode(data); err != nil {
+			log.Printf("Erro ao codificar resposta de sucesso: %v", err)
+			SendError(w, http.StatusInternalServerError, err, "Erro interno do servidor")
+			return
+		}
 	}
 }
 

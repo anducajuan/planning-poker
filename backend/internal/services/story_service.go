@@ -41,7 +41,8 @@ func (s *StoryService) CreateStory(ctx context.Context, story *models.Story) (*m
 }
 
 func (s *StoryService) RevealStory(ctx context.Context, storyId int) error {
-	vote_repository := repositories.VoteRepository{}
+	vote_repository := repositories.NewVoteRepository(s.db)
+
 	if err := vote_repository.UpdateStatusPerStory(ctx, storyId); err != nil {
 		return err
 	}
