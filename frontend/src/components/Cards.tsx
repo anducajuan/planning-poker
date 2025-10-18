@@ -29,7 +29,7 @@ export const PokerCard = styled(Grid)(
     borderRadius: 12,
     boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
     color: theme.palette.primary.main,
-    margin: "8px",
+    margin: "12px 8px",
     padding: "16px",
     display: "flex",
     justifyContent: "space-between",
@@ -43,7 +43,7 @@ export const PokerCard = styled(Grid)(
     [theme.breakpoints.down("sm")]: {
       height: selected ? 136 : 124,
       width: selected ? 96 : 84,
-      margin: 4,
+      margin: "12px 4px",
     },
   })
 );

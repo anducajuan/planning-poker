@@ -9,7 +9,6 @@ import { toast } from "react-toastify";
 import { theme } from "../../theme/theme";
 import { AxiosError } from "axios";
 import { VoteTable } from "./sections/voteTable";
-import { SessionData } from "./sections/sessionData";
 
 export interface Player {
   id: number;
@@ -304,10 +303,7 @@ export function Session() {
     <Grid container justifyContent="center" alignItems="center">
       {paramsSessionId ? (
         <Grid container justifyContent={"center"} alignItems={"flex-end"}>
-          <Grid item xs={12} lg={3}>
-            <SessionData />
-          </Grid>
-          <Grid item xs={12} lg={6}>
+          <Grid item xs={12}>
             <VoteTable
               playersList={players}
               player={player}
@@ -320,30 +316,26 @@ export function Session() {
               setOpenStoryModal={setOpenStoryModal}
               openStoryModal={openStoryModal}
             />
-          </Grid>
-          <Grid item xs={12} lg={3}>
-            <SessionData />
-          </Grid>
-
-          <Grid
-            item
-            display={"flex"}
-            direction={"row"}
-            alignItems={"flex-end"}
-            style={{ minHeight: "180px", marginTop: "2%" }}
-          >
-            <Grid container justifyContent={"center"}>
-              {cards.map((card, index) => (
-                <Grid item display={"flex"} direction={"row"} key={index}>
-                  <Card
-                    key={card}
-                    value={String(card)}
-                    selected={card == selectedCard}
-                    color={mapearCor({ valor: card })}
-                    onClick={() => handleCardClick(card)}
-                  />
-                </Grid>
-              ))}
+            <Grid
+              item
+              display={"flex"}
+              direction={"row"}
+              alignItems={"flex-end"}
+              style={{ minHeight: "180px", marginTop: "6%" }}
+            >
+              <Grid container justifyContent={"center"}>
+                {cards.map((card, index) => (
+                  <Grid item display={"flex"} direction={"row"} key={index}>
+                    <Card
+                      key={card}
+                      value={String(card)}
+                      selected={card == selectedCard}
+                      color={mapearCor({ valor: card })}
+                      onClick={() => handleCardClick(card)}
+                    />
+                  </Grid>
+                ))}
+              </Grid>
             </Grid>
           </Grid>
         </Grid>
