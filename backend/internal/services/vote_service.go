@@ -4,6 +4,7 @@ import (
 	"context"
 	"flip-planning-poker/internal/models"
 	"flip-planning-poker/internal/repositories"
+	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -23,6 +24,14 @@ func NewVoteService(database *pgxpool.Pool) *VoteService {
 func (s *VoteService) Create(ctx context.Context, vote *models.Vote) (*models.Vote, error) {
 	if vote.Status == "" {
 		vote.Status = "HIDDEN"
+	}
+	existUserVote, err := s.verifyExistingVoteForStory(ctx, vote.UserID, vote.StoryID)
+	if err != nil {
+		return nil, err
+	}
+
+	if existUserVote {
+		return nil, fmt.Errorf("já existe um vote para o usuário %d na story %d", vote.UserID, vote.StoryID)
 	}
 
 	if err := s.repo.CreateVote(ctx, vote); err != nil {
