@@ -8,6 +8,9 @@ import { mapearCor } from "../../../utils/colors";
 import type { Player, Story } from "..";
 import Logo from "../../../components/Logo";
 import { CreateModal } from "./sessionModal";
+import api from "../../../services/api";
+import { AxiosError } from "axios";
+import { toast } from "react-toastify";
 
 const tableSides = [
   [1, 5, 9, 11],
@@ -50,6 +53,9 @@ export const VoteTable = ({
   handleCreateStory,
   openStoryModal,
   setOpenStoryModal,
+  setSelectedCard,
+  isRevealed,
+  setIsRevealed,
 }: {
   playersList: Player[];
   player: Player | undefined;
@@ -61,17 +67,33 @@ export const VoteTable = ({
   handleCreateStory: (storyName: string) => void;
   openStoryModal: boolean;
   setOpenStoryModal: React.Dispatch<React.SetStateAction<boolean>>;
+  setSelectedCard: React.Dispatch<React.SetStateAction<string | null | number>>;
+  isRevealed: boolean;
+  setIsRevealed: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const [players, setPlayers] = useState<Player[]>([]);
-  const [isRevealed, setIsRevealed] = useState<boolean>(true);
 
   useEffect(() => {
-    setPlayers(playersList);
-  }, [playersList]);
+    setPlayers(
+      playersList?.map((p) =>
+        p.id === player?.id ? { ...p, vote: player?.vote } : p
+      )
+    );
+  }, [playersList, player]);
 
-  const handleReveal = () => {
-    setIsRevealed(true);
-    setStory({ id: null, name: "" });
+  const handleReveal = async () => {
+    try {
+      await api.post(`/stories/${story?.id}/reveal`);
+      setStory({ id: null, name: "" });
+      setSelectedCard("");
+      setIsRevealed(true);
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        toast.error(error?.response?.data.message);
+      } else {
+        toast.error("Ocorreu um erro ao revelar os votos.");
+      }
+    }
   };
 
   return (

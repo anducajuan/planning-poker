@@ -48,6 +48,7 @@ export function Session() {
   const [name, setName] = useState("");
   const [sessionName, setSessionName] = useState("");
   const [vote, setVote] = useState<Vote>({ id: null, vote: "" });
+  const [isRevealed, setIsRevealed] = useState<boolean>(false);
   const [story, setStory] = useState<Story>({
     id: null,
     name: "",
@@ -138,7 +139,7 @@ export function Session() {
             `votes?story_id=${storyId}`
           );
 
-          const userVote = votesData.find(
+          const userVote = votesData?.find(
             (vote: Vote) => vote.user_id === playerId
           );
 
@@ -160,7 +161,7 @@ export function Session() {
   }, [paramsSessionId]);
 
   const handleCardClick = async (card: string | number) => {
-    if (card !== selectedCard && player && paramsSessionId && story) {
+    if (card !== selectedCard && player && paramsSessionId && story?.id) {
       if (!vote?.id) {
         const { data: newVote } = await api.post("/votes", {
           vote: card.toString(),
@@ -169,11 +170,13 @@ export function Session() {
           story_id: story.id,
         });
         setVote(newVote);
+        setPlayer({ ...player, vote: card });
       } else {
         const { data: updatedVote } = await api.patch(`/votes/${vote.id}`, {
           vote: card.toString(),
         });
         setVote(updatedVote);
+        setPlayer({ ...player, vote: card });
       }
       setSelectedCard(card);
     }
@@ -204,6 +207,7 @@ export function Session() {
 
       localStorage.setItem("sessionId", session.id);
 
+      setIsRevealed(false);
       setPreviousSession(session.id);
       navigate(`/session/${session.id}`);
     } catch (error: unknown) {
@@ -315,6 +319,9 @@ export function Session() {
               handleCreateStory={handleCreateStory}
               setOpenStoryModal={setOpenStoryModal}
               openStoryModal={openStoryModal}
+              setSelectedCard={setSelectedCard}
+              setIsRevealed={setIsRevealed}
+              isRevealed={isRevealed}
             />
             <Grid
               item
