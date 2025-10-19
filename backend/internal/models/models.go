@@ -12,10 +12,11 @@ type User struct {
 }
 
 type Story struct {
-	ID        int    `json:"id"`         // SERIAL
-	Name      string `json:"name"`       // nome da história
-	Status    string `json:"status"`     // "ACTUAL" ou "OLD"
-	SessionID string `json:"session_id"` // FK -> sessions.id
+	ID                int    `json:"id"`               // SERIAL
+	Name              string `json:"name"`             // nome da história
+	Status            string `json:"status"`           // "ACTUAL" ou "OLD"
+	SessionID         string `json:"session_id"`       // FK -> sessions.id
+	EstimationAverage string `json:"estimate_average"` // Estimativa em horas
 }
 
 type VoteStatus string

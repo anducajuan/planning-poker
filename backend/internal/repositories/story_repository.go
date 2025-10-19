@@ -18,7 +18,7 @@ func NewStoryRepository(db *pgxpool.Pool) *StoryRepository {
 }
 
 func (r *StoryRepository) FindStoryBySessionId(sessionId string) ([]models.Story, error) {
-	rows, err := r.db.Query(context.Background(), "SELECT id, name, status, session_id from stories where session_id = $1", sessionId)
+	rows, err := r.db.Query(context.Background(), "SELECT id, name, status, session_id, estimation_average from stories where session_id = $1", sessionId)
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func (r *StoryRepository) FindStoryBySessionId(sessionId string) ([]models.Story
 	for rows.Next() {
 		var s models.Story
 
-		if err := rows.Scan(&s.ID, &s.Name, &s.Status, &s.SessionID); err != nil {
+		if err := rows.Scan(&s.ID, &s.Name, &s.Status, &s.SessionID, &s.EstimationAverage); err != nil {
 			return nil, err
 		}
 		stories = append(stories, s)
@@ -37,12 +37,12 @@ func (r *StoryRepository) FindStoryBySessionId(sessionId string) ([]models.Story
 	return stories, nil
 }
 
-func (r *StoryRepository) CreateStory(story *models.Story) error {
+func (r *StoryRepository) CreateStory(ctx context.Context, story *models.Story) error {
 	validateErrs := validateStoryData(story)
 	if len(validateErrs) > 0 {
 		return validateErrs[0]
 	}
-	err := r.db.QueryRow(context.Background(), `
+	err := r.db.QueryRow(ctx, `
 		INSERT INTO 
 			stories (name, session_id, status) 
 			VALUES ($1, $2, $3) 
@@ -54,8 +54,8 @@ func (r *StoryRepository) CreateStory(story *models.Story) error {
 
 func (r *StoryRepository) GetStoryById(ctx context.Context, storyId int) (*models.Story, error) {
 	var story models.Story
-	query := "select s.id, s.name, s.status, s.session_id from stories s where s.id = $1"
-	err := r.db.QueryRow(ctx, query, storyId).Scan(&story.ID, &story.Name, &story.Status, &story.SessionID)
+	query := "select s.id, s.name, s.status, s.session_id, coalesce(s.estimation_average, '') from stories s where s.id = $1"
+	err := r.db.QueryRow(ctx, query, storyId).Scan(&story.ID, &story.Name, &story.Status, &story.SessionID, &story.EstimationAverage)
 	if err != nil {
 		return nil, err
 	}

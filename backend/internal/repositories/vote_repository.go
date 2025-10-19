@@ -78,7 +78,7 @@ type VotePatch struct {
 	Status *string `json:"status,omitempty"`
 }
 
-func (r *VoteRepository) UpdateVote(ctx context.Context, id int, patch *VotePatch) error {
+func (r *VoteRepository) UpdateVote(ctx context.Context, id int, patch *VotePatch) (*models.Vote, error) {
 	var setParts []string
 	var args []any
 	argIndex := 1
@@ -96,15 +96,24 @@ func (r *VoteRepository) UpdateVote(ctx context.Context, id int, patch *VotePatc
 	}
 
 	if len(setParts) == 0 {
-		return fmt.Errorf("nenhum campo fornecido para atualização")
+		return nil, fmt.Errorf("nenhum campo fornecido para atualização")
 	}
 
-	updateStatement := fmt.Sprintf("UPDATE votes SET %s WHERE id = $%d",
+	var vote *models.Vote
+	voteArgs := []any{
+		&vote.ID,
+		&vote.SessionID,
+		&vote.Status,
+		&vote.StoryID,
+		&vote.UserID,
+		&vote.Vote,
+	}
+	updateStatement := fmt.Sprintf("UPDATE votes SET %s WHERE id = $%d returning id, session_id, status, story_id, user_id, vote",
 		strings.Join(setParts, ", "), argIndex)
 	args = append(args, id)
-
+	args = append(args, voteArgs...)
 	_, err := r.db.Exec(ctx, updateStatement, args...)
-	return err
+	return vote, err
 }
 
 func (r *VoteRepository) GetVoteByID(ctx context.Context, id int) (*models.Vote, error) {

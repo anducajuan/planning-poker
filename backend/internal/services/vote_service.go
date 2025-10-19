@@ -4,20 +4,24 @@ import (
 	"context"
 	"flip-planning-poker/internal/models"
 	"flip-planning-poker/internal/repositories"
+	"flip-planning-poker/internal/websocket"
 	"fmt"
+	"log"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type VoteService struct {
-	db   *pgxpool.Pool
-	repo *repositories.VoteRepository
+	db        *pgxpool.Pool
+	repo      *repositories.VoteRepository
+	wsService *websocket.WebsocketService
 }
 
-func NewVoteService(database *pgxpool.Pool) *VoteService {
+func NewVoteService(database *pgxpool.Pool, websocketService *websocket.WebsocketService) *VoteService {
 	return &VoteService{
-		db:   database,
-		repo: repositories.NewVoteRepository(database),
+		db:        database,
+		repo:      repositories.NewVoteRepository(database),
+		wsService: websocketService,
 	}
 }
 
@@ -41,6 +45,15 @@ func (s *VoteService) Create(ctx context.Context, vote *models.Vote) (*models.Vo
 	if err := s.repo.CreateVote(ctx, vote); err != nil {
 		return nil, err
 	}
+	log.Println("Enviando evento de criação de voto via websocket para a sessão: ", vote.SessionID)
+	s.wsService.SendSessionMessage(vote.SessionID, websocket.WSMessage{
+		Event: websocket.VOTE_CREATED_WS_EVENT,
+		Data: struct {
+			Vote *models.Vote `json:"vote"`
+		}{
+			Vote: vote,
+		},
+	})
 
 	return vote, nil
 }
@@ -74,7 +87,25 @@ func (s *VoteService) List(ctx context.Context, storyId int) ([]models.Vote, err
 }
 
 func (s *VoteService) Patch(ctx context.Context, id int, patch *repositories.VotePatch) error {
-	return s.repo.UpdateVote(ctx, id, patch)
+
+	vote, err := s.repo.UpdateVote(ctx, id, patch)
+	if err != nil {
+		return err
+	}
+
+	log.Println("Enviando evento de voto alterado para a sessão: ", vote.SessionID)
+	err = s.wsService.SendSessionMessage(vote.SessionID, websocket.WSMessage{
+		Event: websocket.VOTE_CHANGED_WS_EVENT,
+		Data: struct {
+			Vote *models.Vote `json:"vote"`
+		}{
+			Vote: vote,
+		},
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *VoteService) Get(ctx context.Context, id int) (*models.Vote, error) {

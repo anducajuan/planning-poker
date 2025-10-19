@@ -53,9 +53,9 @@ func (r *ApiRouter) NewRouter(database *pgxpool.Pool) (*mux.Router, error) {
 
 	// Inicializa Serviços
 	sessionService := services.NewSessionService(r.db)
-	userService := services.NewUserService(r.db)
+	userService := services.NewUserService(r.db, wsService)
 	storyService := services.NewStoryService(r.db, wsService)
-	voteService := services.NewVoteService(r.db)
+	voteService := services.NewVoteService(r.db, wsService)
 
 	// Lista com todos os Handlers que serão registrados
 	handlersList := []Handler{

@@ -152,7 +152,12 @@ func (s *WebsocketService) SendSessionMessage(sessionId string, message WSMessag
 type WebsocketEvents string
 
 const (
-	STORY_REVEALED WebsocketEvents = "STORY_REVEALED"
+	STORY_REVEALED_WS_EVENT WebsocketEvents = "STORY_REVEALED"
+	STORY_CREATED_WS_EVENT  WebsocketEvents = "STORY_CREATED"
+	VOTE_CREATED_WS_EVENT   WebsocketEvents = "VOTE_CREATED"
+	VOTE_CHANGED_WS_EVENT   WebsocketEvents = "VOTE_CHANGED"
+	USER_JOINED_WS_EVENT    WebsocketEvents = "USER_JOINED"
+	USER_LEFT_WS_EVENT      WebsocketEvents = "USER_LEFT"
 )
 
 type WSMessage struct {

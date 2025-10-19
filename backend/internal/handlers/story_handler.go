@@ -44,7 +44,7 @@ func (h *StoryHandler) RevealStory(w http.ResponseWriter, r *http.Request) {
 
 	storyId, err = strconv.Atoi(idStr)
 	if err != nil {
-		response.SendError(w, http.StatusBadRequest, err, "Necessário informar um id de sessão")
+		response.SendError(w, http.StatusBadRequest, err, "Necessário informar um id de story")
 		return
 	}
 

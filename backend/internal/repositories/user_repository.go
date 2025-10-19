@@ -84,3 +84,12 @@ func (r *UserRepository) ValidateUserData(ctx context.Context, user *models.User
 
 	return nil
 }
+
+func (r *UserRepository) DeleteUser(ctx context.Context, user *models.User) error {
+	deleteSQl := "delete from users where id = $1 returning users.id, users.name, users.session_id"
+	err := r.db.QueryRow(ctx, deleteSQl, &user.ID).Scan(&user.ID, &user.Name, &user.SessionID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
