@@ -14,7 +14,7 @@ import CottageIcon from "@mui/icons-material/Cottage";
 import GridViewIcon from "@mui/icons-material/GridView";
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 import Logo from "./Logo";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { SessionData } from "../pages/Session/sections/sessionData";
 
