@@ -52,6 +52,16 @@ func (r *StoryRepository) CreateStory(story *models.Story) error {
 	return err
 }
 
+func (r *StoryRepository) GetStoryById(ctx context.Context, storyId int) (*models.Story, error) {
+	var story models.Story
+	query := "select s.id, s.name, s.status, s.session_id from stories s where s.id = $1"
+	err := r.db.QueryRow(ctx, query, storyId).Scan(&story.ID, &story.Name, &story.Status, &story.SessionID)
+	if err != nil {
+		return nil, err
+	}
+	return &story, nil
+}
+
 func validateStoryData(story *models.Story) []error {
 	var errs []error
 	possibleStatus := []string{

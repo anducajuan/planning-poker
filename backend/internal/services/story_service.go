@@ -4,19 +4,23 @@ import (
 	"context"
 	"flip-planning-poker/internal/models"
 	"flip-planning-poker/internal/repositories"
+	"flip-planning-poker/internal/websocket"
+	"log"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type StoryService struct {
-	db   *pgxpool.Pool
-	repo *repositories.StoryRepository
+	db        *pgxpool.Pool
+	repo      *repositories.StoryRepository
+	wsService *websocket.WebsocketService
 }
 
-func NewStoryService(database *pgxpool.Pool) *StoryService {
+func NewStoryService(database *pgxpool.Pool, websocketService *websocket.WebsocketService) *StoryService {
 	return &StoryService{
-		db:   database,
-		repo: repositories.NewStoryRepository(database),
+		db:        database,
+		repo:      repositories.NewStoryRepository(database),
+		wsService: websocketService,
 	}
 }
 
@@ -46,6 +50,17 @@ func (s *StoryService) RevealStory(ctx context.Context, storyId int) error {
 	if err := vote_repository.UpdateStatusPerStory(ctx, storyId); err != nil {
 		return err
 	}
-
+	story, err := s.repo.GetStoryById(ctx, storyId)
+	if err != nil {
+		return err
+	}
+	log.Println("Enviando evento de Story Revelada para a sessão: ", story.SessionID)
+	err = s.wsService.SendSessionMessage(story.SessionID, websocket.WSMessage{
+		Event: websocket.STORY_REVEALED,
+		Data:  nil,
+	})
+	if err != nil {
+		return err
+	}
 	return nil
 }

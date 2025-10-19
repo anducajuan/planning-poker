@@ -47,7 +47,6 @@ func (r *ApiRouter) NewRouter(database *pgxpool.Pool) (*mux.Router, error) {
 	wsService := websocket.NewWebsocketService()
 
 	wsRouter.HandleFunc("/ws", wsService.WsHandler)
-	go wsService.HandleMessages()
 
 	r.router.Use(middleware.CORS)
 	r.router.Use(middleware.Logger)
@@ -55,7 +54,7 @@ func (r *ApiRouter) NewRouter(database *pgxpool.Pool) (*mux.Router, error) {
 	// Inicializa Serviços
 	sessionService := services.NewSessionService(r.db)
 	userService := services.NewUserService(r.db)
-	storyService := services.NewStoryService(r.db)
+	storyService := services.NewStoryService(r.db, wsService)
 	voteService := services.NewVoteService(r.db)
 
 	// Lista com todos os Handlers que serão registrados
