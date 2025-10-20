@@ -5,6 +5,9 @@ import (
 	"errors"
 	"flip-planning-poker/internal/models"
 	"flip-planning-poker/internal/utils"
+	"fmt"
+	"reflect"
+	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -104,4 +107,56 @@ func (r *StoryRepository) SetStoriesToOld(sessionID string, storyToKeepID int) e
 	}
 
 	return nil
+}
+
+func (r *StoryRepository) UpdateStory(ctx context.Context, story *models.Story) error {
+
+	updateClauses, returningClause, scanArgs, queryArgs := buildUpdateStatements(story)
+	updateQuery := fmt.Sprintf(`
+	UPDATE stories
+	SET %s 
+	WHERE id = %d
+	RETURNING %s
+	`, updateClauses, story.ID, returningClause)
+
+	err := r.db.QueryRow(ctx, updateQuery, queryArgs...).Scan(scanArgs...)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func buildUpdateStatements(story *models.Story) (string, string, []any, []any) {
+	t := reflect.TypeOf(story)
+	v := reflect.ValueOf(story)
+	if t.Kind() == reflect.Pointer {
+		t = t.Elem()
+	}
+	if v.Kind() == reflect.Pointer {
+		v = v.Elem()
+	}
+	var scanArgs []any
+	var queryArgs []any
+	var updateValues []string
+	var returnValues []string
+	fieldCount := 1
+	for i := range v.NumField() {
+		field := t.Field(i)
+		value := v.Field(i)
+
+		jsonTag := field.Tag.Get("json")
+		if jsonTag == "id" || jsonTag == "" {
+			continue
+		}
+		statement := fmt.Sprintf("%s = $%d", jsonTag, fieldCount)
+		updateValues = append(updateValues, statement)
+		scanArgs = append(scanArgs, value.Addr().Interface())
+		queryArgs = append(queryArgs, value.Interface())
+		returnValues = append(returnValues, jsonTag)
+		fieldCount++
+	}
+	updateClauses := strings.Join(updateValues, ", ")
+	returningClause := strings.Join(returnValues, ", ")
+	return updateClauses, returningClause, scanArgs, queryArgs
 }
