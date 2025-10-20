@@ -99,7 +99,8 @@ func (r *VoteRepository) UpdateVote(ctx context.Context, id int, patch *VotePatc
 		return nil, fmt.Errorf("nenhum campo fornecido para atualização")
 	}
 
-	var vote *models.Vote
+	vote := &models.Vote{}
+
 	voteArgs := []any{
 		&vote.ID,
 		&vote.SessionID,
