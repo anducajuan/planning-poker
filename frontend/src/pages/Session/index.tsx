@@ -9,6 +9,8 @@ import { toast } from "react-toastify";
 import { theme } from "../../theme/theme";
 import { AxiosError } from "axios";
 import { VoteTable } from "./sections/voteTable";
+import { useWebsocket } from "../../ws/useSocket";
+import { socketManager } from "../../ws/socketManager";
 
 export interface Player {
   id: number;
@@ -44,21 +46,18 @@ export function Session() {
   const [openUserModal, setOpenUserModal] = useState<boolean>(false);
   const [openStoryModal, setOpenStoryModal] = useState<boolean>(false);
   const [player, setPlayer] = useState<Player>();
-  const [players, setPlayers] = useState<Player[]>([]);
   const [name, setName] = useState("");
   const [sessionName, setSessionName] = useState("");
   const [vote, setVote] = useState<Vote>({ id: null, vote: "" });
-  const [isRevealed, setIsRevealed] = useState<boolean>(false);
-  const [story, setStory] = useState<Story>({
-    id: null,
-    name: "",
-  });
   const [previousSession, setPreviousSession] = useState<string | null>(
     localStorage.getItem("sessionId")
   );
   const [selectedCard, setSelectedCard] = useState<string | number | null>(
     null
   );
+
+  const { players, revealed, story } = useWebsocket(paramsSessionId || "");
+  console.log(story);
 
   useEffect(() => {
     const loadPlayers = async () => {
@@ -75,8 +74,6 @@ export function Session() {
             vote: "",
           })
         );
-
-        setPlayers(formattedPlayersList);
 
         const storagePlayer = JSON.parse(localStorage.getItem("user") || "{}");
 
@@ -117,10 +114,6 @@ export function Session() {
         );
 
         if (actualStory) {
-          setStory({
-            id: actualStory.id,
-            name: actualStory.name,
-          });
           loadVotes(actualStory.id, player.id);
         }
       } catch (error: unknown) {
@@ -201,15 +194,23 @@ export function Session() {
         name: trimmedSessionName,
       });
 
+      navigate(`/session/${session.id}`);
+
+      try {
+        await socketManager.waitForOpen(session.id, 5000);
+      } catch {
+        toast.warning("Erro ao iniciar sessão.");
+        navigate("/");
+        return;
+      }
+
       const player = await handleCreateUser(name, session.id);
 
       if (!player) return;
 
       localStorage.setItem("sessionId", session.id);
 
-      setIsRevealed(false);
       setPreviousSession(session.id);
-      navigate(`/session/${session.id}`);
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
         toast.error(error?.response?.data.message);
@@ -247,16 +248,24 @@ export function Session() {
         })
       );
 
+      const lastPlayer = (players as Player[] | undefined)?.at(-1);
+      const lastPosition = lastPlayer ? lastPlayer.position : 0;
+
       const newPlayer = {
         id: user.id,
         name: user.name,
         vote: "",
-        position: (players.at(-1)?.position || 0) + 1,
+        position: lastPosition + 1,
       };
 
       setPlayer(newPlayer);
-      setPlayers([...players, newPlayer]);
       setOpenUserModal(false);
+
+      try {
+        socketManager.send("USER_JOINED", newPlayer);
+      } catch {
+        toast.warning("Erro ao entrar na sessão.");
+      }
 
       return newPlayer;
     } catch (error: unknown) {
@@ -283,16 +292,12 @@ export function Session() {
     }
 
     try {
-      const { data: storyData } = await api.post("/stories", {
+      await api.post("/stories", {
         name: trimmedStoryName,
         session_id: session,
         status: "ACTUAL",
       });
 
-      setStory({
-        id: storyData.id,
-        name: storyData.name,
-      });
       setOpenStoryModal(false);
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
@@ -315,13 +320,11 @@ export function Session() {
               setOpenUserModal={setOpenUserModal}
               openUserModal={openUserModal}
               story={story}
-              setStory={setStory}
               handleCreateStory={handleCreateStory}
               setOpenStoryModal={setOpenStoryModal}
               openStoryModal={openStoryModal}
               setSelectedCard={setSelectedCard}
-              setIsRevealed={setIsRevealed}
-              isRevealed={isRevealed}
+              isRevealed={revealed}
             />
             <Grid
               item

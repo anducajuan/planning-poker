@@ -81,29 +81,38 @@ export default function Header() {
       sx={{ backgroundColor: theme.palette.background.paper, width: "100%" }}
     >
       <StyledToolbar>
-        <Grid container alignItems="center" gap={1} xs={isMobile ? 6 : 4}>
+        <Grid
+          container
+          alignItems="center"
+          gap={1}
+          xs={isMobile ? 3 : 4}
+          lg={6}
+        >
           <Logo
             sx={{ fontSize: 48, cursor: "pointer" }}
             onClick={() => {
               navigate("/");
             }}
           />
-          <LogoText
-            variant="h6"
-            sx={{ color: theme.palette.primary.contrastText }}
-            onClick={() => {
-              navigate("/");
-            }}
-          >
-            Planning Poker
-          </LogoText>
+          {!isMobile && (
+            <LogoText
+              variant="h6"
+              sx={{ color: theme.palette.primary.contrastText }}
+              onClick={() => {
+                navigate("/");
+              }}
+            >
+              Planning Poker
+            </LogoText>
+          )}
         </Grid>
         <Grid
           container
           alignItems="center"
           justifyContent={"flex-end"}
           gap={isMobile ? 1 : 2}
-          xs={isMobile ? 6 : 8}
+          xs={9}
+          md={8}
         >
           <NavButton
             onClick={() => setOpenHistory(true)}

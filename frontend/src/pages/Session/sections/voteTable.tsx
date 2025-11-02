@@ -49,13 +49,11 @@ export const VoteTable = ({
   openUserModal,
   setOpenUserModal,
   story,
-  setStory,
   handleCreateStory,
   openStoryModal,
   setOpenStoryModal,
   setSelectedCard,
   isRevealed,
-  setIsRevealed,
 }: {
   playersList: Player[];
   player: Player | undefined;
@@ -63,13 +61,11 @@ export const VoteTable = ({
   openUserModal: boolean;
   setOpenUserModal: React.Dispatch<React.SetStateAction<boolean>>;
   story: Story | undefined;
-  setStory: React.Dispatch<React.SetStateAction<Story>>;
   handleCreateStory: (storyName: string) => void;
   openStoryModal: boolean;
   setOpenStoryModal: React.Dispatch<React.SetStateAction<boolean>>;
   setSelectedCard: React.Dispatch<React.SetStateAction<string | null | number>>;
   isRevealed: boolean;
-  setIsRevealed: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const [players, setPlayers] = useState<Player[]>([]);
 
@@ -84,9 +80,7 @@ export const VoteTable = ({
   const handleReveal = async () => {
     try {
       await api.post(`/stories/${story?.id}/reveal`);
-      setStory({ id: null, name: "" });
       setSelectedCard("");
-      setIsRevealed(true);
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
         toast.error(error?.response?.data.message);
