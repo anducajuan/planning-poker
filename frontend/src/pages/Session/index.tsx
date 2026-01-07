@@ -57,7 +57,6 @@ export function Session() {
   );
 
   const { players, revealed, story } = useWebsocket(paramsSessionId || "");
-  console.log(story);
 
   useEffect(() => {
     const loadPlayers = async () => {
